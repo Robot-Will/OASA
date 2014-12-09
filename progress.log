@@ -1,0 +1,85 @@
+RELEASE - OASA 0.13.1
+----------------------------------------
+
+ * fixes - cairo_out - use cached version of ring searching - significantly speeds
+   	   	       up exports of larger molecules (10x or even more)
+		     - fix disconnected molecules crashing cairo_out
+	 - graph - fix rare lockups in SSSR algorithm
+	 - __init__ - make name_database import conditional
+
+ * enhancements - molfile - parse charge information from property line in molfiles
+      
+ * acknowledgments - thanks to István Vágó for several useful bug reports
+
+
+RELEASE - OASA 0.13.0
+----------------------------------------
+ * enhancements - cairo_out - double bonds in 3D rotated molecules look much better
+   		  	      (z-coordinate is taken into account when the bond is drawn)
+ * fixes - smiles - smiles encoder did not prefix two digit ring numbers with "%"
+   	 - graph - SSSR code did not find really smallest rings in case no vertices with
+	   	   degree 2 were present in the initial drawing (fullerene and such)
+	 - molecule - aromatic bond detection uses SSSR instead of all possible rings
+	   	      when there are more then 10 smallest rings - fixes lockup for fullerene
+ 	 - cairo_out - when scaling != 1 the resulting image was improperly cropped
+
+
+RELEASE - OASA 0.12.7
+----------------------------------------
+ * enhancements - cairo_out - mols_to_cairo and mol_to_cairo convenience functions added
+ * fixes - cairo_out - background was not properly painted (thanks to Noel O'Boyle for reporting this)
+
+
+RELEASE - OASA 0.12.6
+----------------------------------------
+ * enhancements - cairo_out - more than one molecule can be placed onto a canvas
+   		  	      (use method mols_to_cairo())
+		- cairo_out - support for PDF and SVG export added
+		  	      (use format argument to mols_to_cairo() or mol_to_png())
+   		- inchi_key - code updated to reflect 1.02 final of InChI
+		  	    - subprocess is used instead of deprecated popen
+		- molfile - SDFiles are now supported using a new class based interface
+		  	    and generators for file reading
+ * fixes - pybel_bridge - charge is properly copied between OASA and pybel
+			    
+
+RELEASE - OASA 0.12.5
+----------------------------------------
+ * enhancements - cairo_out - default color scheme was changed to a slightly modified version of
+		  http://bodr.svn.sourceforge.net/viewvc/*checkout*/bodr/trunk/bodr/elements/elements.xml?revision=34&content-type=text%2Fplain (old scheme is still available)
+		- cairo_out - carbon atom in methane is always visible
+		- cairo_out - it is possible to change symbol and hydrogen display on per-atom
+		  	      basis by setting atom.properties_['show_hydrogens'] == True
+			      and/or atom.properties_['show_symbol]
+		- cairo_out - function mol_to_png now passes all keyword arguments to cairo_out
+		  	      constructor
+		- cairo_out - more tuning of double bond centering
+		- monoisotopic mass was added to the periodic_table and formula dict
+		  can thus compute exact (monoisotopic) mass
+		- molfile - RAD property is properly parsed
+
+ * changes - several changes to make OASA compatible with Python 2.6 were made which break
+   	     backwards compatibility with Python 2.3
+
+ * info - this version of OASA corresponds to that of BKChem-0.12.5
+
+
+RELEASE - OASA 0.12.1
+----------------------------------------
+
+ * bugfixes - coords_generator - coordinate generation obeys E/Z stereochemistry
+   	      		       	 even for branched structures
+   	    - cairo_out - charges should no longer shift placement of atom symbols
+	      		- H2N (hydrogen before atom symbol) should be placed properly
+			- bonds that have exactly 45 degree angle should no longer disappear
+
+ * enhancements - cairo_out - more elaborate algorithm is used to decide
+   		  	      about centering of a double bond
+
+ * acknowledgments - Noel O'Boyle - for merciless bug hunting
+ 
+
+RELEASE - OASA 0.12.0
+----------------------------------------
+
+ * first public release

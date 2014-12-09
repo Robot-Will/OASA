@@ -1,0 +1,12 @@
+Metadata-Version: 1.0
+Name: oasa
+Version: 0.13.1
+Summary: OASA is a free cheminformatics library written in Python
+Home-page: http://bkchem.zirael.org/oasa_en.html
+Author: Beda Kosata
+Author-email: beda@zirael.org
+License: GNU GPL
+Description: OASA is a free cheminformatics library written in Python
+Platform: Unix
+Platform: Windows
+Platform: hopefully other OSes able to run Python
