@@ -17,14 +17,15 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import sys
 sys.path.append( '../')
 
-import graph
-from chem_vertex import chem_vertex
-import periodic_table as PT
-from common import is_uniquely_sorted
-from oasa_exceptions import oasa_invalid_atom_symbol
+from . import graph
+from .chem_vertex import chem_vertex
+from . import periodic_table as PT
+from .common import is_uniquely_sorted
+from .oasa_exceptions import oasa_invalid_atom_symbol
 
 import copy
 import itertools
@@ -159,7 +160,7 @@ class atom( chem_vertex):
 
   # isotope
   def _set_isotope( self, isotope):
-    if isotope != None and type( isotope) != type( 1):
+    if isotope != None and type( isotope) != int:
       # isotope must be a number or None
       raise oasa_exceptions.oasa_invalid_value( "isotope", isotope)
     self._isotope = isotope
@@ -197,7 +198,7 @@ class atom( chem_vertex):
 
   # electron pairs
   def _get_electron_pairs( self):
-    return (PT.periodic_table[ self.symbol][ 'els'] - sum( [b.order for b in self.neighbor_edges]) -self.charge -self.free_valency -self.multiplicity+1) / 2.0
+    return (PT.periodic_table[ self.symbol][ 'els'] - sum( b.order for b in self.neighbor_edges) -self.charge -self.free_valency -self.multiplicity+1) / 2.0
 
   electron_pairs = property( _get_electron_pairs, None, None, "get number of atoms electron pairs")
 

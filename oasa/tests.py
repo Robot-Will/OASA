@@ -19,8 +19,10 @@
 
 """this is just a file for tests, it has no real value"""
 
-import smiles
-import molfile
+from __future__ import absolute_import
+from __future__ import print_function
+from . import smiles
+from . import molfile
 from time import time
 
 
@@ -45,7 +47,7 @@ def is_edge_a_bridge_speed():
         b = 0
         for e in mol.edges:
             b += mol.is_edge_a_bridge( e)
-    print b
+    print(b)
     return time() - t1
 
 
@@ -55,14 +57,14 @@ def sssr_old():
     mol = smiles.text_to_mol( sssr_smiles)
     t1 = time()
     cs = mol.get_smallest_independent_cycles_e()
-    print len( cs)
+    print(len( cs))
     return time() - t1
 
 def sssr():
     mol = smiles.text_to_mol( sssr_smiles)
     t1 = time()
     cs = mol.get_smallest_independent_cycles_e_new()
-    print len( cs)
+    print(len( cs))
     return time() - t1
 
     
@@ -73,48 +75,48 @@ def find_all_cycles_speed():
 
 
 def stereo():
-    sms = ["C\C=C\C","C\C=C/C"]
+    sms = [r"C\C=C\C",r"C\C=C/C"]
     c = smiles.converter()
     c.configuration['R_GENERATE_COORDS'] = True
     for i,sm in enumerate( sms):
         fname = "pokus%d.mol" % i
         m = c.read_text( sm)[0]
-        print [(a.x,a.y) for a in m.vertices]
-        f = file( fname, "w")
+        print([(a.x,a.y) for a in m.vertices])
+        f = open( fname, "w")
         molfile.mol_to_file( m, f)
 
 def stereo2():
-    sms = ["C\C=C\C","C\C=C/C"]
+    sms = [r"C\C=C\C",r"C\C=C/C"]
     c = smiles.converter()
     c.configuration['R_GENERATE_COORDS'] = True
     for i,sm in enumerate( sms):
         m = c.read_text( sm)[0]
-        print m.stereochemistry
+        print(m.stereochemistry)
 
 
 def stereo_from_coords():
-    f = file( "ez_stereo2.mol", "r")
+    f = open( "ez_stereo2.mol")
     mol = molfile.file_to_mol( f)
     f.close()
     mol.detect_stereochemistry_from_coords()
-    print smiles.mol_to_text( mol)
+    print(smiles.mol_to_text( mol))
 
 def stereo_from_coords2():
-    f = file( "cis_trans_cycles.mol", "r")
+    f = open( "cis_trans_cycles.mol")
     mol = molfile.file_to_mol( f)
     f.close()
     c = smiles.converter()
-    print c.mols_to_text( [mol])
+    print(c.mols_to_text( [mol]))
 
 
 def aromaticity():
     mol = smiles.text_to_mol( "C1=C[CH][CH]C=C1")
     #print [v.multiplicity for v in mol.vertices]
     mol.mark_aromatic_bonds()
-    print [e.aromatic for e in mol.edges]
+    print([e.aromatic for e in mol.edges])
     
 def smiles_from_db():
-    import structure_database
+    from . import structure_database
     import time, sys
     c = smiles.converter()
     c.configuration['R_GENERATE_COORDS'] = True
@@ -126,19 +128,19 @@ def smiles_from_db():
         try:
             mol = c.read_text( hit[3])
         except:
-            print >> sys.stderr, "CRASH:", hit[3]
+            print("CRASH:", hit[3], file=sys.stderr)
             errors += 1
         else:
             ok += 1
         if i % 100 == 0:
             tm = time.time() - t
-            print "%d, %d ok, %d crashes;  %.1f per second" % (i, ok, errors, i/tm)
+            print("%d, %d ok, %d crashes;  %.1f per second" % (i, ok, errors, i/tm))
 
 def smiles_compression():
-    import structure_database
+    from . import structure_database
     import time, sys, zlib
     sms = []
-    f = file( "smiles.txt", "r")
+    f = open( "smiles.txt")
     for line in f:
         sms.append( line.strip())
     f.close()
@@ -151,7 +153,7 @@ def smiles_compression():
         i += 1
         comp_length += len( c.compress( sm))
     comp_length += len( c.flush(zlib.Z_SYNC_FLUSH))
-    print "Ratio:", 1.0 * comp_length / length
+    print("Ratio:", 1.0 * comp_length / length)
 
     import random
     total_compressed = 0
@@ -162,20 +164,20 @@ def smiles_compression():
         compressed += c.flush(zlib.Z_SYNC_FLUSH)
         total_compressed += len( compressed)
         #print "RAW", 1.0*len( compressed) / len( sm)
-    print "Ratio for individual SMILES:", 1.0*total_compressed / total_sm
+    print("Ratio for individual SMILES:", 1.0*total_compressed / total_sm)
 
 
 def cairo_out_test():
-    import molfile
+    from . import molfile
     import time
     cid = 22646404
     #cid = 1373132
     #cid = 18305969
     #cid = 19815256
-    f = file( "%d.mol" % cid, "r")
+    f = open( "%d.mol" % cid)
     mol = molfile.file_to_mol( f)
     f.close()
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 25)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=4.0, margin=10, font_size=16,
@@ -188,15 +190,15 @@ def cairo_out_test():
     c.mol_to_cairo( mol, "%d.png" % cid)
     c.mol_to_cairo( mol, "%d.pdf" % cid, format="pdf")
     c.mol_to_cairo( mol, "%d.svg" % cid, format="svg")
-    print time.time()-t
+    print(time.time()-t)
 
 
 def cairo_out_test2():
-    import smiles
+    from . import smiles
     #mol = smiles.text_to_mol( "COC(=O)CNC(C1=CC=CC=C1)C2=C(C=CC(=C2)Br)NC(=O)C3=CC(=CC=C3)Cl")
     #mol = smiles.text_to_mol( "c1nccc2c1cncn2")
     mol = smiles.text_to_mol( "CCC=CC(=O)C.CCCC")
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 30)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( color_bonds=True, color_atoms=True) #, background_color=(0.4,1,0.5,0.8))
@@ -209,11 +211,11 @@ def cairo_out_test2():
 
 
 def cairo_out_test3():
-    import molfile
-    f = file( "/tmp/!B/synchem_nitro.sdf", "r")
+    from . import molfile
+    f = open( "/tmp/!B/synchem_nitro.sdf")
     mol = molfile.file_to_mol( f)
     f.close()
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 25)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=1.0, margin=10, font_size=16,
@@ -224,11 +226,11 @@ def cairo_out_test3():
     c.mol_to_cairo( mol, "out.png")
 
 def cairo_out_test4():
-    import molfile
-    f = file( "multi.mol", "r")
+    from . import molfile
+    f = open( "multi.mol")
     mol = molfile.file_to_mol( f)
     f.close()
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 25)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=1.0, margin=10, font_size=16,
@@ -241,12 +243,12 @@ def cairo_out_test4():
     #c.mols_to_cairo( mol.get_disconnected_subgraphs(), "out.png")
 
 def cairo_out_test5():
-    import molfile
-    f = file( "/zaloha/temp/forever.mol", "r")
+    from . import molfile
+    f = open( "/zaloha/temp/forever.mol")
     mol = molfile.file_to_mol( f)
-    print mol
+    print(mol)
     f.close()
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 25)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=1.0, margin=10, font_size=16,
@@ -259,26 +261,26 @@ def cairo_out_test5():
 
 
 def cairo_out_test_wedge():
-    import molfile
+    from . import molfile
     import time
-    f = file( "untitled0.mol", "r")
+    f = open( "untitled0.mol")
     mol = molfile.file_to_mol( f)
     f.close()
-    import cairo_out
+    from . import cairo_out
     mol.normalize_bond_length( 30)
     mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=1.0, antialias_text=True, color_bonds=True, color_atoms=True)
     t = time.time()
     c.mol_to_cairo( mol, "untitled0.png")
-    print time.time()-t
+    print(time.time()-t)
 
 
 def cairo_out_test3d():
-    import molfile
-    f = file( "1.mol", "r")
+    from . import molfile
+    f = open( "1.mol")
     mol = molfile.file_to_mol( f)
     f.close()
-    import cairo_out
+    from . import cairo_out
     #mol.normalize_bond_length( 25)
     #mol.remove_unimportant_hydrogens()
     c = cairo_out.cairo_out( scaling=1.0, margin=30, font_size=16,
@@ -290,8 +292,8 @@ def cairo_out_test3d():
 
 
 def test_inchi_stereo():
-    import inchi
-    f = file( "stereobonds.txt", "r")
+    from . import inchi
+    f = open( "stereobonds.txt")
     for line in f:
         orig = line.strip()
         try:
@@ -302,67 +304,67 @@ def test_inchi_stereo():
         new = inchi.mol_to_text( mol)
         if new != orig:
             pass
-            print "problem"
-            print orig
-            print new
-            print "------------------------------"
+            print("problem")
+            print(orig)
+            print(new)
+            print("------------------------------")
         else:
             pass
             #print "ok", orig
     f.close()
 
 def test_CIP():
-    import smiles
+    from . import smiles
     m = smiles.text_to_mol( "HC(C(CCC)CCC)(C1CC1C)C2CC2")
-    from atom import atom
+    from .atom import atom
     a = m.atoms[1]
-    print a.is_chiral()
-    print [m.atoms.index( x) for x in a.get_neighbors_CIP_sorted()]
+    print(a.is_chiral())
+    print([m.atoms.index( x) for x in a.get_neighbors_CIP_sorted()])
 
 
 def test_CIP_2():
-    import smiles
+    from . import smiles
     m = smiles.text_to_mol( "HC(CC)(O)C")
-    from atom import atom
+    from .atom import atom
     a = m.atoms[1]
     dg = m.create_CIP_digraph( a)
-    print dg
+    print(dg)
 
 
 
 def test_3d_rot():
-    import geometry
+    from . import geometry
     p = [10,1,1]
     t = geometry.create_transformation_to_coincide_point_with_z_axis( [-9,1,4], p)
-    print t.transform_xyz( *p)
-    print t.transform_xyz( -9,1,4)
+    print(t.transform_xyz( *p))
+    print(t.transform_xyz( -9,1,4))
     inv = t.get_inverse()
-    print inv.transform_xyz( *t.transform_xyz( *p))
+    print(inv.transform_xyz( *t.transform_xyz( *p)))
 
 
 def test_multimol_molfile():
-    import molfile
-    f = file( 'test.mol', 'r')
+    from . import molfile
+    f = open( 'test.mol')
     mol = molfile.file_to_mol( f)
     f.close()
-    print mol.is_connected()
+    print(mol.is_connected())
     for mol in mol.get_disconnected_subgraphs():
-        print mol
+        print(mol)
 
 
 def test_multimol_molfile2():
-    import molfile, smiles
+    from . import molfile, smiles
     mols = [smiles.text_to_mol( t) for t in ["CCC(=O)[O-].[K+]"]]
     for mol in mols:
         mol.remove_zero_order_bonds()
     m = molfile.converter()
     text = m.mols_to_text( mols)
-    f = file("multi2.mol","w")
+    f = open("multi2.mol","w")
     f.write( text)
     f.close()
-    f = file("prase.sdf","r")
+    f = open("prase.sdf")
     for mol in m.read_text( text):
-        print smiles.mol_to_text( mol)
+        print(smiles.mol_to_text( mol))
     f.close()
     
 ##     import pybel
@@ -370,32 +372,32 @@ def test_multimol_molfile2():
 ##         print m
 
 def test_new_ring_perception():
-    import smiles
+    from . import smiles
     mol = smiles.text_to_mol( "C2369C478C56C179C34C1258", calc_coords=False, localize_aromatic_bonds=False)
     t = time()
     for i, ring in enumerate( mol.get_all_cycles()):
-        print len( ring),
-    print
-    print i, time()-t
+        print(len( ring), end=' ')
+    print()
+    print(i, time()-t)
 
 def test_sdf_processing():
     import gzip
-    import molfile, smiles
+    from . import molfile, smiles
     m = molfile.converter()
     m2 = smiles.converter()
     f = gzip.open("00000001_00025000.sdf.gz","r")
     for mol in m.read_file( f):
         mol.remove_unimportant_hydrogens()
         mols = mol.get_disconnected_subgraphs()
-        print m2.mols_to_text( mols)
+        print(m2.mols_to_text( mols))
     f.close()
 
 def test_sdf_processing2():
     import gzip
-    import molfile
+    from . import molfile
     m = molfile.converter()
     f = gzip.open("00000001_00025000.sdf.gz","r")
-    f2 = file( "AAAA.sdf","w")
+    f2 = open( "AAAA.sdf","w")
     for mol in m.read_file( f):
         mol.remove_unimportant_hydrogens()
         m.mols_to_file( [mol], f2)
@@ -403,8 +405,8 @@ def test_sdf_processing2():
     f2.close()
 
 def test_fullerene_lockdown():
-    import inchi
-    import smiles
+    from . import inchi
+    from . import smiles
     from time import time
     t = time()
     #mol = inchi.text_to_mol( "InChI=1/C60/c1-2-5-6-3(1)8-12-10-4(1)9-11-7(2)17-21-13(5)23-24-14(6)22-18(8)28-20(12)30-26-16(10)15(9)25-29-19(11)27(17)37-41-31(21)33(23)43-44-34(24)32(22)42-38(28)48-40(30)46-36(26)35(25)45-39(29)47(37)55-49(41)51(43)57-52(44)50(42)56(48)59-54(46)53(45)58(55)60(57)59")
@@ -412,62 +414,62 @@ def test_fullerene_lockdown():
     #string = "C12C3C2C13"
     string = "c1=%31c%25c8c%23c%19c%18c7c8c%17c%25c%29C=%21C=%31c%12c2-c%11c=%21c%20c%24c=4c%11C=6c2c9c(c5%28)c%12c1c%23c5c%19c3c%16c%18c%14c7c(c%17c%10c%20%29)c%22c%10c%24c%26c-%13c%22c%14c(c-%13c%15=C%27C=4%26)c%16c(c%15=%30)=c3c%28=C9C=%30C=6%27"
     mol = smiles.text_to_mol( string, calc_coords=True)
-    print time()-t
+    print(time()-t)
     t = time()
     #print mol.get_all_cycles()
-    print smiles.mol_to_text( mol)
-    print time()-t
-    print mol
+    print(smiles.mol_to_text( mol))
+    print(time()-t)
+    print(mol)
 
 def test_sssr():
-    import smiles
+    from . import smiles
     string = "C1CCCC1C2CCC2"
     string = "C36C1C5C4C2C6C7CCC2CCC4CCC5CCC1CCC3CC7"
     string = "c1=%31c%25c8c%23c%19c%18c7c8c%17c%25c%29C=%21C=%31c%12c2-c%11c=%21c%20c%24c=4c%11C=6c2c9c(c5%28)c%12c1c%23c5c%19c3c%16c%18c%14c7c(c%17c%10c%20%29)c%22c%10c%24c%26c-%13c%22c%14c(c-%13c%15=C%27C=4%26)c%16c(c%15=%30)=c3c%28=C9C=%30C=6%27"
     string = "C12C3C2C13"
     string = "C12C34C5C24C135"
     mol = smiles.text_to_mol( string, calc_coords=False, localize_aromatic_bonds=False)
-    print "AAA"
+    print("AAA")
     for i,v in enumerate( mol.vertices):
         for rings in mol._get_smallest_cycles_for_vertex( v, to_reach=v):
             if rings:
-                print map( len, rings)
+                print(list(map( len, rings)))
                 break
 
 def test_sssr2():
-    import smiles
+    from . import smiles
     string = "C1CCCC1C2CCC2"
     string = "C36C1C5C4C2C6C7CCC2CCC4CCC5CCC1CCC3CC7"
     string = "c1=%31c%25c8c%23c%19c%18c7c8c%17c%25c%29C=%21C=%31c%12c2-c%11c=%21c%20c%24c=4c%11C=6c2c9c(c5%28)c%12c1c%23c5c%19c3c%16c%18c%14c7c(c%17c%10c%20%29)c%22c%10c%24c%26c-%13c%22c%14c(c-%13c%15=C%27C=4%26)c%16c(c%15=%30)=c3c%28=C9C=%30C=6%27"
     string = "C12C34C5C24C135"
     mol = smiles.text_to_mol( string, calc_coords=False, localize_aromatic_bonds=False)
-    print map( len, mol.get_smallest_independent_cycles())
+    print(list(map( len, mol.get_smallest_independent_cycles())))
 
 
 def test_rings_in_disconnected_mol():
-    import smiles
+    from . import smiles
     sc = smiles.converter()
     mol = smiles.text_to_mol( "c1ccccc1.c1ccccc1.c1ccccc1CC=C")
     mol.remove_zero_order_bonds()
-    print mol, mol.is_connected()
-    print [len( c) for c in mol.get_smallest_independent_cycles_e()]
+    print(mol, mol.is_connected())
+    print([len( c) for c in mol.get_smallest_independent_cycles_e()])
 
 
 def test_charge_property_line():
-    import molfile
-    f = file( 'fromOBabel.mol', 'r')
+    from . import molfile
+    f = open( 'fromOBabel.mol')
     mol = molfile.file_to_mol( f)
     f.close()
-    print mol.is_connected()
+    print(mol.is_connected())
     for mol in mol.get_disconnected_subgraphs():
         for atom in mol.atoms:
-            print atom.charge
+            print(atom.charge)
 
 def show_dump():
-    from molecule import molecule
-    from graph.graph import graph
+    from .molecule import molecule
+    from .graph.graph import graph
     imp = molecule()
-    imp.read_simple_text_file( file("aaa9.txt","r"))
+    imp.read_simple_text_file( open("aaa9.txt"))
     removed = True
     while removed:
         removed = False
@@ -480,7 +482,7 @@ def show_dump():
                     break
             if removed:
                 break
-    import coords_generator
+    from . import coords_generator
     for part in imp.get_disconnected_subgraphs():
         if len( part.vertices) > 1:
             coords_generator.calculate_coords( part, force=1)

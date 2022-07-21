@@ -17,10 +17,11 @@
 
 #--------------------------------------------------------------------------
 
-import oasa_exceptions
+from __future__ import absolute_import
+from . import oasa_exceptions
 
 
-class stereochemistry( object):
+class stereochemistry:
 
   def __init__( self, center=None, references=None, value=None):
     self.center = center
@@ -75,7 +76,7 @@ class cis_trans_stereochemistry( stereochemistry):
 
   def get_other_end( self, ref):
     if not ref in self.references:
-      raise ValueError, "submitted object is not referenced in this stereochemistry object."
+      raise ValueError("submitted object is not referenced in this stereochemistry object.")
     ref1, _r1, _r2, ref2 = self.references
     return ref is ref1 and ref2 or ref1
 
@@ -104,7 +105,7 @@ class tetrahedral_stereochemistry( stereochemistry):
 
 
 
-class explicit_hydrogen( object):
+class explicit_hydrogen:
   """this object serves as a placeholder for explicit hydrogen in stereochemistry references"""
 
   def __eq__( self, other):

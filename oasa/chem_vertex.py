@@ -17,12 +17,13 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import sys
 sys.path.append( '../')
 
-import graph
-import periodic_table as PT
-from common import is_uniquely_sorted
+from . import graph
+from . import periodic_table as PT
+from .common import is_uniquely_sorted
 
 import copy
 from warnings import warn

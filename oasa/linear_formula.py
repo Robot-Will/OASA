@@ -17,18 +17,20 @@
 
 #--------------------------------------------------------------------------
 
-from config import Config
+from __future__ import absolute_import
+from __future__ import print_function
+from .config import Config
 
 import re
-from periodic_table import periodic_table
-import coords_generator
-import misc
-from known_groups import name_to_smiles
-import smiles
-from oasa_exceptions import oasa_invalid_atom_symbol
+from .periodic_table import periodic_table
+from . import coords_generator
+from . import misc
+from .known_groups import name_to_smiles
+from . import smiles
+from .oasa_exceptions import oasa_invalid_atom_symbol
 
 
-class linear_formula( object):
+class linear_formula:
 
   def __init__( self, text="", start_valency=0, end_valency=0, mol=None):
     """valency specifies the already occupied valency of the submited formula,
@@ -299,7 +301,7 @@ def reverse_formula( text):
 #        if count:
 #          all_chunks.append( str(count))
 
-  print all_chunks
+  print(all_chunks)
   #all_chunks.reverse()
   return all_chunks
   
@@ -314,5 +316,5 @@ if __name__ == "__main__":
     coords_generator.calculate_coords( m)
     coords_generator.show_mol( m)
   else:
-    print "nothing"
+    print("nothing")
 

@@ -17,10 +17,11 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import unittest
-import linear_formula
-import smiles
-import molecule
+from . import linear_formula
+from . import smiles
+from . import molecule
 
 # helper functions
 
@@ -45,7 +46,7 @@ class TestLinearFormula(unittest.TestCase):
     linear, smile, start_valency, end_valency = self.formulas[num]
     m1 = l.parse_text( linear, start_valency=start_valency, end_valency=end_valency) 
     m2 = smiles.text_to_mol( smile)
-    self.assert_(molecule.equals(m1,m2,level=3))
+    self.assertTrue(molecule.equals(m1,m2,level=3))
 
 # this creates individual test for formulas
 for i in range( len( TestLinearFormula.formulas)):
@@ -85,7 +86,7 @@ class TestSubstructure(unittest.TestCase):
     smile1, smile2, result = self.formulas[num]
     m1 = smiles.text_to_mol( smile1)
     m2 = smiles.text_to_mol( smile2)
-    self.assert_(m1.contains_substructure(m2)==result)
+    self.assertTrue(m1.contains_substructure(m2)==result)
 
 # this creates individual test for substructures
 for i in range( len( TestSubstructure.formulas)):
@@ -120,7 +121,7 @@ class TestEqualSMILES(unittest.TestCase):
     smile1, smile2, result = self.formulas[num]
     m1 = smiles.text_to_mol( smile1)
     m2 = smiles.text_to_mol( smile2)
-    self.assert_(molecule.equals(m1,m2,level=3)==result)
+    self.assertTrue(molecule.equals(m1,m2,level=3)==result)
 
 # this creates individual test for substructures
 for i in range( len( TestEqualSMILES.formulas)):
@@ -148,7 +149,7 @@ class TestSMILESReading(unittest.TestCase):
     conv = smiles.converter()
     mols = conv.read_text( smile1)
     for i,mol in enumerate( mols):
-      self.assert_( i < len( sum_forms))
+      self.assertTrue( i < len( sum_forms))
       self.assertEqual( str( mol.get_formula_dict()), sum_forms[i]) 
 
   def test_empty_smiles( self):
@@ -202,7 +203,7 @@ class TestSMILESReactionSupport(unittest.TestCase):
 
 ## Reaction test
 
-import reaction
+from . import reaction
 
 class TestReactionComponent(unittest.TestCase):
 
@@ -283,11 +284,11 @@ for i in range( len( TestCharge.formulas)):
 class TestStereo(unittest.TestCase):
 
   formulas = [("c1ccccc1",()),
-              ("C\C=C/C", (1,)),
-              ("C\C=C/C=C/C=C\C", (-1,1,1)),
-              ("C\C(\O)=C/C=C/C=C\C", (-1,-1,1,1)),
-              ("O\C=C=C=C/N=C/Br", (-1,1)),
-              ("O\C(\N)=C/C=C\C=C\Cl", (-1,-1,1,1))
+              (r"C\C=C/C", (1,)),
+              (r"C\C=C/C=C/C=C\C", (-1,1,1)),
+              (r"C\C(\O)=C/C=C/C=C\C", (-1,-1,1,1)),
+              (r"O\C=C=C=C/N=C/Br", (-1,1)),
+              (r"O\C(\N)=C/C=C\C=C\Cl", (-1,-1,1,1))
               ]
     
   def _testformula(self, num):
@@ -310,11 +311,11 @@ class TestStereo2(unittest.TestCase):
   """tests if stereochemistry of structure read from smiles
   remains the same when recoded back to smiles and read again."""
 
-  formulas = ["C\C=C/C",
-              "N\C=C/C=C/Cl",
-              "O\C(\N)=C/C=C\C=C\Cl",
-              "O\C=C=C=C/N=C/Br",
-              "C/C(Cl)=C(\O)C",
+  formulas = [r"C\C=C/C",
+              r"N\C=C/C=C/Cl",
+              r"O\C(\N)=C/C=C\C=C\Cl",
+              r"O\C=C=C=C/N=C/Br",
+              r"C/C(Cl)=C(\O)C",
               ]
     
   def _testformula(self, num):
@@ -349,11 +350,11 @@ class TestStereo3(unittest.TestCase):
   remains the same when coordinates are calculates, stereo information
   thrown away and recalculated from the coords."""
 
-  formulas = ["C\C=C/C",
-              "N\C=C/C=C/Cl",
-              "O\C(\N)=C/C=C\C=C\Cl",
-              "O\C=C=C=C/N=C/Br",
-              "C/C(Cl)=C(\O)N",
+  formulas = [r"C\C=C/C",
+              r"N\C=C/C=C/Cl",
+              r"O\C(\N)=C/C=C\C=C\Cl",
+              r"O\C=C=C=C/N=C/Br",
+              r"C/C(Cl)=C(\O)N",
               ]
     
   def _testformula(self, num):
@@ -399,7 +400,7 @@ if __name__ == '__main__':
     tests = [globals()[k] for k in dir() if type(globals()[k])==type and issubclass( globals()[k], unittest.TestCase)]
     ss = []
     for test in tests:
-      s1 = unittest.makeSuite( test)
+      s1 = unittest.defaultTestLoader.loadTestsFromTestCase( test)
       unittest.TextTestRunner(verbosity=2).run(s1)
   else:
     unittest.main()

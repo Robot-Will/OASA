@@ -17,16 +17,18 @@
 
 #--------------------------------------------------------------------------
 
-from plugin import plugin
-from molecule import molecule
-from atom import atom
-from bond import bond
-import dom_extensions as dom_ext
+from __future__ import absolute_import
+from __future__ import print_function
+from .plugin import plugin
+from .molecule import molecule
+from .atom import atom
+from .bond import bond
+from . import dom_extensions as dom_ext
 import xml.dom.minidom as dom
-from known_groups import cdml_to_smiles
-from periodic_table import periodic_table as PT
-from coords_generator import calculate_coords
-import smiles
+from .known_groups import cdml_to_smiles
+from .periodic_table import periodic_table as PT
+from .coords_generator import calculate_coords
+from . import smiles
 
 
 
@@ -54,7 +56,7 @@ def read_cdml( text):
       y = cm_to_float_coord( pos.getAttribute('y'))
       z = cm_to_float_coord( pos.getAttribute('z'))
       if name in PT:
-        # its really an atom 
+        # its really an atom
         a = atom( symbol=name,
                   charge=atom_el.getAttribute( 'charge') and int( atom_el.getAttribute( 'charge')) or 0,
                   coords=( x, y, z))
@@ -66,14 +68,14 @@ def read_cdml( text):
         a.x = x
         a.y = y
         a.z = z
-        mol.insert_a_graph( group) 
+        mol.insert_a_graph( group)
       atom_id_remap[ atom_el.getAttribute( 'id')] = a
     if do_not_continue_this_mol:
       break
 
     for bond_el in dom_ext.simpleXPathSearch( mol_el, "bond"):
       type = bond_el.getAttribute( 'type')
-      if type[1] == u'0':
+      if type[1] == '0':
         # we ignore bonds with order 0
         continue
       v1 = atom_id_remap[ bond_el.getAttribute( 'start')]
@@ -85,9 +87,8 @@ def read_cdml( text):
       # this is here to handle diborane and similar weird things
       yield mol
     else:
-      for comp in mol.get_disconnected_subgraphs():
-        yield comp
-      
+      yield from mol.get_disconnected_subgraphs()
+
 
 def cm_to_float_coord( x):
   if not x:
@@ -96,12 +97,12 @@ def cm_to_float_coord( x):
     return float( x[:-2])*72/2.54
   else:
     return float( x)
-    
+
 
 ##################################################
 # MODULE INTERFACE
 
-from StringIO import StringIO
+from io import StringIO
 
 reads_text = 1
 reads_files = 1
@@ -114,7 +115,7 @@ def file_to_mol( f):
 def text_to_mol( text):
   gen = read_cdml( text)
   try:
-    mol = gen.next()
+    mol = next(gen)
   except StopIteration:
     return None
   calculate_coords( mol, bond_length=-1)
@@ -122,7 +123,7 @@ def text_to_mol( text):
 
 #
 ##################################################
-  
+
 
 ##################################################
 # DEMO
@@ -132,24 +133,24 @@ if __name__ == '__main__':
   import sys
 
   if len( sys.argv) < 1:
-    print "you must supply a filename"
+    print("you must supply a filename")
     sys.exit()
 
   # parsing of the file
 
   file_name = sys.argv[1]
-  f = file( file_name, 'r')
+  f = open( file_name)
   mol = file_to_mol( f)
   f.close()
 
   import time
 
   t = time.time()
-  lens = map( len, mol.get_all_cycles())
+  lens = list(map( len, mol.get_all_cycles()))
   lens.sort()
-  print lens
-  print time.time() -t 
-  print "total %d rings" % len( lens)
+  print(lens)
+  print(time.time() -t)
+  print("total %d rings" % len( lens))
 
 ##     mring = mol.get_new_induced_subgraph( ring, mol.vertex_subgraph_to_edge_subgraph( ring))
 ##     if not mring.is_connected():
@@ -165,5 +166,5 @@ if __name__ == '__main__':
   #for a in mol.vertices:
   #  print a.x, a.y
 
-  print mol
+  print(mol)
   #print smiles.mol_to_text( mol)

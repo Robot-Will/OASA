@@ -18,17 +18,19 @@
 #--------------------------------------------------------------------------
 
 
-import graph
-from atom import atom
-from query_atom import query_atom
-from bond import bond
+from __future__ import absolute_import
+from __future__ import print_function
+from . import graph
+from .atom import atom
+from .query_atom import query_atom
+from .bond import bond
 import copy
-import common
+from . import common
 import operator
-import misc
-import periodic_table as PT
+from . import misc
+from . import periodic_table as PT
 import math
-import transform3d
+from . import transform3d
 
 
 class molecule( graph.graph):
@@ -54,7 +56,7 @@ class molecule( graph.graph):
     return bond()
 
   def create_graph( self):
-    import config
+    from . import config
     return config.Config.molecule_class()
 
   def add_stereochemistry( self, stereo):
@@ -62,7 +64,7 @@ class molecule( graph.graph):
 
   def remove_stereochemistry( self, stereo):
     if not stereo in self.stereochemistry:
-      raise ValueError, "cannot remove non-existent stereochemistry information"
+      raise ValueError("cannot remove non-existent stereochemistry information")
     self.stereochemistry.remove( stereo)
 
   def get_stereochemistry_by_center( self, center):
@@ -78,7 +80,7 @@ class molecule( graph.graph):
     out = graph.graph.get_disconnected_subgraphs( self)
     for part in out:
       for st in self.stereochemistry:
-        if set( [ref for ref in st.references if isinstance(ref,atom)]) <= set( part.vertices):
+        if { ref for ref in st.references if isinstance(ref,atom)} <= set( part.vertices):
           part.add_stereochemistry( st)
     return out
 
@@ -94,7 +96,7 @@ class molecule( graph.graph):
 
 
   def get_charge( self):
-    return sum( [a.charge for a in self.vertices])
+    return sum( a.charge for a in self.vertices)
 
   charge = property( get_charge, None, None, "Net charge of the molecule")
 
@@ -136,7 +138,7 @@ class molecule( graph.graph):
       hs.add( h)
     v.explicit_hydrogens = 0
     return hs
-  
+
 
   def add_missing_bond_orders( self, retry=False):
     """retry means to try a different approach because the last one was not successful"""
@@ -153,7 +155,7 @@ class molecule( graph.graph):
     while fix:
       fix = False
       for v in self.vertices:
-        if sum( [n.free_valency for n in v.neighbors]) < v.free_valency:
+        if sum( n.free_valency for n in v.neighbors) < v.free_valency:
           for n in v.neighbors:
             if n.raise_valency():
               fix = True
@@ -177,19 +179,19 @@ class molecule( graph.graph):
       processed = []
       step += 1
       assert step < 100 # there is something strange if we reach this number
-      for b in [bo for bo in self.edges if min( [a.free_valency for a in bo.vertices])]:
+      for b in [bo for bo in self.edges if min( a.free_valency for a in bo.vertices)]:
         a1, a2 = b.get_vertices()
         as1 = [a for a in a1.get_neighbors() if a.free_valency > 0]
         as2 = [a for a in a2.get_neighbors() if a.free_valency > 0]
         if len( as1) == 1 or len( as2) == 1:
-          b.order += min( [a.free_valency for a in b.vertices])
+          b.order += min( a.free_valency for a in b.vertices)
           processed.append( b)
 
       # we process non-bridge bonds first, so that their fixation does not
       # force unsolvable possitioning of bonds in rings
       if not processed:
         for b in self.edges:
-          i = min( [a.free_valency for a in b.vertices])
+          i = min( a.free_valency for a in b.vertices)
           if i and not self.is_edge_a_bridge( b):
             processed = [b]
             b.order += i
@@ -197,7 +199,7 @@ class molecule( graph.graph):
 
       if not processed:
         for b in self.edges:
-          i = min( [a.free_valency for a in b.vertices])
+          i = min( a.free_valency for a in b.vertices)
           if i:
             processed = [b]
             b.order += i
@@ -239,7 +241,7 @@ class molecule( graph.graph):
     else:
       rings = self.get_all_cycles()   #self.get_smallest_independent_cycles()
     solved = [1]
-    # we need to repeat it to mark such things as 'badly' drawn naphtalene (no double bond in the centre) 
+    # we need to repeat it to mark such things as 'badly' drawn naphtalene (no double bond in the centre)
     while solved:
       solved = []
       for aring in rings:
@@ -289,10 +291,10 @@ class molecule( graph.graph):
     they will be properly localized but marked as non-aromatic"""
     erings = self.get_smallest_independent_cycles_e()
     # filter off rings without aromatic bonds
-    erings = filter( lambda x: len( [b for b in x if b.aromatic]), erings)
-    rings = map( self.edge_subgraph_to_vertex_subgraph, erings)
+    erings = [x for x in erings if len( [b for b in x if b.aromatic])]
+    rings = list(map( self.edge_subgraph_to_vertex_subgraph, erings))
     # sort rings
-    rings.sort( lambda x,y: len(y)%2 - len(x)%2) # odd size rings first
+    rings.sort(key= lambda x: len(x) % 2)  # odd size rings first
     last_rings = []
     while rings:
       # we have to continue with the neighbor rings of the last_ring (or the rings before)
@@ -366,7 +368,7 @@ class molecule( graph.graph):
 
     processed = []
     for b in to_go:
-      if not min( [a.free_valency for a in b.vertices]):
+      if not min( a.free_valency for a in b.vertices):
         b.order = 1
         processed.append( b)
     to_go = misc.difference( to_go, processed)
@@ -476,13 +478,13 @@ class molecule( graph.graph):
     for v in self.vertices:
       out[v] = [i for i in self._get_atom_distance_matrix( v)]
       v.properties_['distance_matrix'] = out[v]
-    ms = out.values()
+    ms = list(out.values())
     #self.remove_all_hydrogens()
     ms.sort()
     i = 1
     ret = []
     for m in ms:
-      ret.append( out.keys()[ out.values().index( m)])
+      ret.append( list(out.keys())[ list(out.values()).index( m)])
       #if ret.symbol != 'H':
       #  print "%3d: " % i, ret, ret.free_valency
       i += 1
@@ -494,7 +496,7 @@ class molecule( graph.graph):
   def _read_file( self, name="/home/beda/oasa/oasa/mol.graph"):
     self.vertices = []
     self.edges = set()
-    f = file( name, 'r')
+    f = open( name)
     vs = f.readline()
     for i in vs.split(' '):
       if i != '\n':
@@ -546,7 +548,7 @@ class molecule( graph.graph):
     as lists of atoms in the order of other.vertices; however when other has
     explicit hydrogens that match implicit hydrogens on self the length of the
     returned fragment might be shorter of the matched implicit hydrogens;
-    
+
     IF YOU DON'T LET THE GENERATOR RUN TO THE END OR SET THE auto_cleanup TO FALSE, YOU HAVE TO
     RUN clean_after_search MANUALLY NOT TO CLUTTER THE STRUCTURE"""
 
@@ -581,7 +583,7 @@ class molecule( graph.graph):
         v.free_sites = v.free_valency
 
     # then we create the dicts for storing threads in each of the atoms
-    i = 0 
+    i = 0
     for a in other.vertices:
       a.properties_['subsearch'] = {}
     for e in other.edges | self.edges:
@@ -605,7 +607,7 @@ class molecule( graph.graph):
       vsset = frozenset( vs)
       if vsset not in yielded:
         if self._freesites_match( other, thread):
-          yield [v for v in vs if not 'implicit_hydrogen' in v.properties_.keys()]
+          yield [v for v in vs if not 'implicit_hydrogen' in list(v.properties_.keys())]
       yielded.add( vsset)
 
     if auto_cleanup:
@@ -620,7 +622,7 @@ class molecule( graph.graph):
         v.free_sites = v.properties_['old_free_sites']
         del v.properties_['old_free_sites']
     # finally we remove the added implicit hydrogens
-    hs = [v for v in self.vertices if 'implicit_hydrogen' in v.properties_.keys()]
+    hs = [v for v in self.vertices if 'implicit_hydrogen' in list(v.properties_.keys())]
     for v in hs:
       del v.properties_['implicit_hydrogen']
       self.remove_vertex( v)
@@ -629,7 +631,7 @@ class molecule( graph.graph):
     for v in other.vertices:
       if 'implicit_hydrogen' not in v.properties_:
         v.explicit_hydrogens = len( [h for h in v.neighbors if 'implicit_hydrogen' in h.properties_])
-    hs = [v for v in other.vertices if 'implicit_hydrogen' in v.properties_.keys()]
+    hs = [v for v in other.vertices if 'implicit_hydrogen' in list(v.properties_.keys())]
     for v in hs:
       del v.properties_['implicit_hydrogen']
       other.remove_vertex( v)
@@ -637,12 +639,12 @@ class molecule( graph.graph):
       del v.properties_['subsearch']
     for e in self.edges | other.edges:
       del e.properties_['subsearch']
-    
-      
+
+
   def _mark_matching_threads( self, v, other):
     """v is other vertex, other is the other molecule"""
     thread = 0
-    threads = v.properties_['subsearch'].keys()
+    threads = list(v.properties_['subsearch'].keys())
     while threads:
       thread = min( threads)
       threads.remove( thread)
@@ -678,7 +680,7 @@ class molecule( graph.graph):
             break
         # for proper handling of rings we have to check also the ones that are in this thread already
         elif thread not in e.properties_['subsearch']:
-          me = self.get_edge_between( mirror, n.properties_['subsearch'][thread]) 
+          me = self.get_edge_between( mirror, n.properties_['subsearch'][thread])
           if me and e.matches( me):
             e.properties_['subsearch'][thread] = me
             me.properties_['subsearch'][thread] = e
@@ -687,12 +689,12 @@ class molecule( graph.graph):
             break
         else:
           pass
-         
+
       threads = [i for i in v.properties_['subsearch'].keys() if i >= thread]
       if thread in threads:
         threads.remove( thread)
         yield thread
-          
+
 
 
   def _spawn_thread( self, other, thread, number):
@@ -700,11 +702,11 @@ class molecule( graph.graph):
     my_es = [e for e in self.edges if thread in e.properties_['subsearch']]
     other_vs = [v for v in other.vertices if thread in v.properties_['subsearch']]
     other_es = [e for e in other.edges if thread in e.properties_['subsearch']]
-    max_thread = max( [max( v.properties_['subsearch'].keys()) for v in other.vertices if v.properties_['subsearch']])
+    max_thread = max( max( v.properties_['subsearch'].keys()) for v in other.vertices if v.properties_['subsearch'])
     for i in range( max_thread +1, max_thread +number +1, 1):
       for v in my_vs + my_es + other_vs + other_es:
         v.properties_['subsearch'][ i] = v.properties_['subsearch'][thread]
-    return range( max_thread +1, max_thread +number +1, 1)
+    return list(range( max_thread +1, max_thread +number +1, 1))
 
 
 
@@ -738,7 +740,7 @@ class molecule( graph.graph):
   # // --- end of the fragment matching routines ---
 
   def detect_stereochemistry_from_coords( self, omit_rings=True):
-    import stereochemistry,geometry
+    from . import stereochemistry,geometry
     def add_neighbor_double_bonds( bond, path):
       for _e in bond.get_neighbor_edges():
         if _e.order == 2 and _e not in path:
@@ -806,18 +808,18 @@ class molecule( graph.graph):
     old_morgs = 0
     for v in self.vertices:
       v.properties_['new_morgan'] = v.degree #sum( [n.degree for n in v.neighbors])
-    new_morgs = len( set( [v.properties_['new_morgan'] for v in self.vertices]))
+    new_morgs = len( { v.properties_['new_morgan'] for v in self.vertices})
 
     while new_morgs > old_morgs:
       for v in self.vertices:
-        v.properties_['morgan'] = v.properties_['new_morgan'] 
+        v.properties_['morgan'] = v.properties_['new_morgan']
 
       for v in self.vertices:
-        v.properties_['new_morgan'] = v.properties_['morgan'] + sum( [n.properties_['morgan'] for n in v.neighbors])
+        v.properties_['new_morgan'] = v.properties_['morgan'] + sum( n.properties_['morgan'] for n in v.neighbors)
       old_morgs = new_morgs
-      new_morgs = len( set( [v.properties_['new_morgan'] for v in self.vertices]))
-      
-    print "morgan", old_morgs, [v.properties_['morgan'] for v in self.vertices]
+      new_morgs = len( { v.properties_['new_morgan'] for v in self.vertices})
+
+    print("morgan", old_morgs, [v.properties_['morgan'] for v in self.vertices])
 
 
   ## some geometry related things
@@ -879,7 +881,7 @@ class molecule( graph.graph):
   def create_CIP_digraph( self, center):
     """creates a digraph according to rules described in CIP paper."""
     assert center in self.vertices
-    from graph.digraph import digraph
+    from .graph.digraph import digraph
     dg = digraph()
     dg.add_vertex( center.copy())
     return dg
@@ -945,7 +947,7 @@ if __name__ == '__main__':
     g._read_file()
 
     for b in g.edges:
-      print g.is_edge_a_bridge( b),
+      print(g.is_edge_a_bridge( b), end=' ')
 
 ##     g.add_missing_hydrogens()
 
@@ -962,7 +964,7 @@ if __name__ == '__main__':
   import time
   t = time.time()
   main()
-  print round( 1000*(time.time()-t), 2), 'ms'
+  print(round( 1000*(time.time()-t), 2), 'ms')
 
 # DEMO END
 ##################################################

@@ -17,10 +17,11 @@
 
 #--------------------------------------------------------------------------
 
-from molecule import molecule
+from __future__ import absolute_import
+from .molecule import molecule
 
 
-class reaction( object):
+class reaction:
   """Reaction representation"""
 
 
@@ -31,7 +32,7 @@ class reaction( object):
 
 
 
-class reaction_component( object):
+class reaction_component:
   """Represents one component of a reaction"""
 
   def __init__( self, mol=None, stoichiometry=1):
@@ -57,4 +58,4 @@ class reaction_component( object):
   stoichiometry = property( _get_stoichiometry, _set_stoichiometry)
 
   def __str__( self):
-    return "%s * (%s)" % (self.stoichiometry, self.molecule)
+    return f"{self.stoichiometry} * ({self.molecule})"

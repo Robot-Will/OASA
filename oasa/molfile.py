@@ -17,8 +17,10 @@
 
 #--------------------------------------------------------------------------
 
-from plugin import plugin
-from molecule import molecule
+from __future__ import absolute_import
+from __future__ import print_function
+from .plugin import plugin
+from .molecule import molecule
 
 
 
@@ -96,19 +98,19 @@ class molfile( plugin):
 
   def _read_property( self, prop):
     import re
-    m = re.match( "M\s+RAD\s+(\d+)(.*)", prop)
+    m = re.match( r"M\s+RAD\s+(\d+)(.*)", prop)
     if m:
-      for at,rad in re.findall( "(\d+)\s+(\d+)", m.group( 2)):
+      for at,rad in re.findall( r"(\d+)\s+(\d+)", m.group( 2)):
         index = int( at)
         multi = int( rad)
         self.structure.vertices[index-1].multiplicity = multi
-    m = re.match( "M\s+CHG\s+(\d+)(.*)", prop)
+    m = re.match( r"M\s+CHG\s+(\d+)(.*)", prop)
     if m:
-      for at,chg in re.findall( "(\d+)\s+(-?\d+)", m.group( 2)):
+      for at,chg in re.findall( r"(\d+)\s+(-?\d+)", m.group( 2)):
         index = int( at)
         charge = int( chg)
         self.structure.vertices[index-1].charge = charge
-    
+
 
   def write_file( self, file):
     """file should be a writable file object"""
@@ -194,14 +196,14 @@ class molfile( plugin):
       i += 1
     if radicals:
       assert len( radicals) <= 8
-      nums = radicals.keys()
+      nums = list(radicals.keys())
       nums.sort()
       rads = " ".join( ["%3d %3d" % (n,radicals[n]) for n in nums])
       rad_line = "M  RAD%3d %s" % (len(nums), rads)
     else:
       rad_line = None
     # return m_lines
-    m_lines = filter( None, [rad_line])
+    m_lines = [_f for _f in [rad_line] if _f]
     return m_lines
 
   def _read_molfile_charge( self, value):
@@ -234,13 +236,13 @@ def read_molfile_value( file, length, strip=1, conversion=None):
     str = conversion( str)
   return str
 
-  
+
 
 
 ##################################################
 # MODULE INTERFACE
 
-from cStringIO import StringIO
+from io import StringIO
 
 reads_text = 1
 reads_files = 1
@@ -267,7 +269,7 @@ def text_to_mol( text):
 
 # NEW MODULE INTERFACE
 
-from converter_base import converter_base
+from .converter_base import converter_base
 
 class molfile_converter( converter_base):
 
@@ -291,8 +293,7 @@ class molfile_converter( converter_base):
   def read_text( self, text):
     converter_base.read_text( self, text)
     mf = StringIO( text)
-    for mol in self.read_file( mf):
-      yield mol
+    yield from self.read_file( mf)
 
   def read_file( self, f):
     converter_base.read_file( self, f)
@@ -321,38 +322,38 @@ class molfile_converter( converter_base):
       m.write_file( f)
     self.last_status = self.STATUS_OK
 
-    
+
 converter = molfile_converter
 
 
 #
 ##################################################
-  
+
 
 if __name__ == "__main__":
 
   import sys
 
   if len( sys.argv) < 1:
-    print "you must supply a filename"
+    print("you must supply a filename")
     sys.exit()
 
   # parsing of the file
 
   file_name = sys.argv[1]
-  f = file( file_name, 'r')
+  f = open( file_name)
   mol = file_to_mol( f)
   f.close()
 
   for a in  mol.atoms:
-    print a.x, a.y
+    print(a.x, a.y)
 
   import time
 
   t = time.time()
-  lens = map( len, mol.get_smallest_independent_cycles())
+  lens = list(map( len, mol.get_smallest_independent_cycles()))
   lens.sort()
-  print lens
-  print time.time() -t 
-  print "total %d rings" % len( lens)
-  print mol
+  print(lens)
+  print(time.time() -t)
+  print("total %d rings" % len( lens))
+  print(mol)

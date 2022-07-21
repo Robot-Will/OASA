@@ -17,21 +17,22 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import sys
 sys.path.append( '../')
 
-import graph
-import periodic_table as PT
-from common import is_uniquely_sorted
+from . import graph
+from . import periodic_table as PT
+from .common import is_uniquely_sorted
 
 import copy
 from warnings import warn
 
 import re
-from atom import atom
+from .atom import atom
 
-from chem_vertex import chem_vertex
-from oasa_exceptions import oasa_invalid_atom_symbol
+from .chem_vertex import chem_vertex
+from .oasa_exceptions import oasa_invalid_atom_symbol
 
 
 
@@ -78,10 +79,10 @@ class query_atom( chem_vertex):
 
   # symbol
   def _set_symbol( self, symbol):
-    if symbol in PT.periodic_table.keys():
+    if symbol in list(PT.periodic_table.keys()):
       if not "query" in PT.periodic_table[ symbol]:
         warn( "Setting normal atom symbol to a query_atom instance, do you mean it?")
-      self.symbols = set( [symbol])
+      self.symbols = { symbol}
     else:
       self.symbols = self.parse_query_definition( symbol)
 
@@ -116,7 +117,7 @@ class query_atom( chem_vertex):
 
 
   def is_query_definition( self, text):
-    matcher = re.compile( "\[([A-Z][a-z]?,)*[A-Z][a-z]?\]")
+    matcher = re.compile( r"\[([A-Z][a-z]?,)*[A-Z][a-z]?\]")
     return matcher.match( text) and True or False
 
   is_query_definition = classmethod( is_query_definition)
@@ -126,7 +127,7 @@ class query_atom( chem_vertex):
     if self.is_query_definition( text):
       syms = set( map( str, text[1:-1].split(",")))
       for sym in syms:
-        if sym not in PT.periodic_table.keys():
+        if sym not in list(PT.periodic_table.keys()):
           raise oasa_invalid_atom_symbol( "invalid symbol in query definition", sym)
       return syms
     else:

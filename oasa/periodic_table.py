@@ -23,9 +23,12 @@
 
 from __future__ import generators
 #from generators import lazy_map, take
+from __future__ import absolute_import
 import re
 import operator
 import types
+import six
+from functools import reduce
 
 
 """periodic table as a dictionary, plus functions for molecular
@@ -129,14 +132,14 @@ class composition_dict( dict):
       if n in self:
         if ret:
           ret += ', '
-        ret += "%s: %2.3f%%" % (n, self[n])
-    k = self.keys()
+        ret += f"{n}: {self[n]:2.3f}%"
+    k = list(self.keys())
     k.sort()
     for n in self:
       if n not in ('C','H'):
         if ret:
           ret += ', '
-        ret += "%s: %2.3f%%" % (n, self[n])
+        ret += f"{n}: {self[n]:2.3f}%"
     return ret
 
 class formula_dict( dict):
@@ -147,14 +150,14 @@ class formula_dict( dict):
     dict.__init__( self)
     ## incomplete means that there were some problems to fully convert a formula to this dict
     self.incomplete = 0
-    if type( form) in (types.StringType, types.UnicodeType):
+    if type( form) in (bytes, str):
       self.read_formula_string( form)
-    elif type( form) == types.DictType:
-      for key, val in form.iteritems():
-        if key in periodic_table and type( val) == types.IntType:
+    elif type( form) == dict:
+      for key, val in form.items():
+        if key in periodic_table and type( val) == int:
           self[ key] = val
         else:
-          raise ValueError, "some of the dictionary entries are not valid for formula_dict (%s => %s)" % (str( key), str( val))
+          raise ValueError(f"some of the dictionary entries are not valid for formula_dict ({str( key)} => {str( val)})")
   
   def __str__( self, reverse=0):
     sum = ''
@@ -188,8 +191,8 @@ class formula_dict( dict):
     return ret
 
   def __mul__( self, other):
-    if not type( other) == types.IntType:
-      raise TypeError, "formula_dict can be only multiplied by an integer"
+    if not type( other) == int:
+      raise TypeError("formula_dict can be only multiplied by an integer")
     res = formula_dict()
     for key in self.keys():
       res[key] = other * self[key]
@@ -218,7 +221,7 @@ class formula_dict( dict):
     return self.sorted_keys()
 
   def sorted_keys( self):
-    k = self.keys()
+    k = list(self.keys())
     ret = []
     if 'C' in k:
       for a in ('C','H'):
@@ -268,7 +271,7 @@ class formula_dict( dict):
         num = '<sub>%d</sub>' % self[s]
       sum += s+num
     if outer_element:
-      return '<%s>%s</%s>' % (outer_element, sum, outer_element)
+      return f'<{outer_element}>{sum}</{outer_element}>'
     return sum
     
   def is_saturated_alkyl_chain( self):
@@ -302,12 +305,12 @@ def formula_to_composition( formula):
 ## other support functions
 
 def text_to_hydrogenated_atom( text):
-  a = re.match( '^([a-z]{1,2})(h)(\d*)$', text.lower())
+  a = re.match( r'^([a-z]{1,2})(h)(\d*)$', text.lower())
   if a:
     atom = a.group( 1)
     hydrogens = a.group( 3)
   else:
-    a = re.match( '^(h)(\d*)([a-z]{1,2})$', text.lower())
+    a = re.match( r'^(h)(\d*)([a-z]{1,2})$', text.lower())
     if a:
       atom = a.group( 3)
       hydrogens = a.group( 2)
@@ -330,9 +333,9 @@ def text_to_hydrogenated_atom( text):
 def gen_bit_masks( length):
   ret = length * [0]
   yield ret
-  for i in xrange( 2 ** length):
+  for i in range( 2 ** length):
     ret[0] += 1
-    for j in xrange( length):
+    for j in range( length):
       if ret[j] == 2:
         ret[j] = 0
         if j == length-1:

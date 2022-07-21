@@ -17,14 +17,16 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
 import xml.dom.minidom as dom
-import dom_extensions
-import transform
-import geometry
+from . import dom_extensions
+from . import transform
+from . import geometry
 import math
-import misc
+from . import misc
 import operator
 import copy
+from functools import reduce
 
 
 class svg_out:
@@ -230,7 +232,7 @@ class svg_out:
 def mol_to_svg( mol, filename):
   c = svg_out()
   tree = c.mol_to_svg( mol)
-  f = file( filename, "w")
+  f = open( filename, "w")
   f.write( tree.toxml())
   f.close()
 
@@ -241,8 +243,8 @@ if __name__ == "__main__":
   #mol = inchi.text_to_mol( "1/C7H6O2/c8-7(9)6-4-2-1-3-5-6/h1-5H,(H,8,9)", include_hydrogens=False, calc_coords=30)
   #import smiles
   #mol = smiles.text_to_mol( "CC[CH]", calc_coords=40)
-  import molfile
-  mol = molfile.file_to_mol( file( "/home/beda/bkchem/bkchem/untitled0.mol", "r"))
+  from . import molfile
+  mol = molfile.file_to_mol( open( "/home/beda/bkchem/bkchem/untitled0.mol"))
   mol_to_svg( mol, "output.svg")
 
 

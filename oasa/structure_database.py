@@ -17,14 +17,16 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os, sys, re
-import oasa_exceptions
+from . import oasa_exceptions
 try:
     from pysqlite2 import dbapi2 as sqlite
-except ImportError, e:
+except ImportError as e:
     raise Exception( "The required pysqlite module could not be loaded. More info here: '%s'" % e)
 
-import inchi
+from . import inchi
 
 class Config:
     database_file = os.path.abspath( os.path.join( os.path.dirname( __file__), "structures.db"))
@@ -60,7 +62,7 @@ def _open_infile( infilename):
             import gzip
             f = gzip.open( infilename, "r")
         else:
-            f = file( infilename, "r")
+            f = open( infilename)
         return f
     else:
         return None
@@ -79,12 +81,12 @@ def fill_database( infilename, name_cutoff=26, atom_count_cutoff=100):
     i = 0
     for line in f:
         if i % 10000 == 0:
-            print "done %8d, added %8d, ignored %8d" % (i,added,ignored)
+            print("done %8d, added %8d, ignored %8d" % (i,added,ignored))
         values = [x.strip() for x in line.strip().split("\t")]
         if len( values) != 4:
-            print >> sys.stderr, "Ignoring line:", line,
+            print("Ignoring line:", line, end=' ', file=sys.stderr)
             continue
-        cid, inchikey, smiles, name = [x.strip() for x in line.strip().split("\t")]
+        cid, inchikey, smiles, name = (x.strip() for x in line.strip().split("\t"))
         c.execute( "DELETE FROM structures WHERE id=?", (cid,))
         if len( name) <= name_cutoff and len( [x for x in smiles if x.isupper()]) <= atom_count_cutoff and _allow_molecule( name, smiles):
             c.execute( "INSERT INTO structures (id,name,inchikey,smiles) VALUES (?,?,?,?);", (cid, name, inchikey, smiles))
@@ -115,24 +117,24 @@ def get_compounds_from_database( database_file=None, **kw):
 
     if 'inchi' in kw:
         if not 'inchikey' in kw:
-            import inchi_key
+            from . import inchi_key
             kw['inchikey'] = inchi_key.key_from_inchi( kw['inchi'])
         del kw['inchi']
     search = ["%s=?" % k for k in kw.keys()]
-    values = kw.values()
+    values = list(kw.values())
     tables = "structures"
     if "synonym" in kw:
         tables = "structures, synonyms"
         search.append( "structures.id=synonyms.id")
     if search:
-        sql = "SELECT structures.* FROM %s WHERE %s" % (tables, " AND ".join( search))
+        sql = "SELECT structures.* FROM {} WHERE {}".format(tables, " AND ".join( search))
     else:
         sql = "SELECT structures.* FROM %s" % (tables)
     connection = sqlite.connect( Config.database_file)
     c = connection.cursor()
     try:
         c.execute( sql, values)
-    except sqlite.OperationalError, e:
+    except sqlite.OperationalError as e:
         raise oasa_exceptions.oasa_error( "Error reading from structure database: '%s'" % e)
     ret = []
     c2 = connection.cursor()
@@ -158,7 +160,7 @@ def _allow_molecule( name, smile):
     if smile.count("+]") > 2:
         # more than 2 positive charges
         return False
-    if re.search( "\[\d", smile):
+    if re.search( r"\[\d", smile):
         return False
     if smile.count(".") > 2:
         return False
@@ -185,11 +187,11 @@ def filter_src_file( infilename, name_cutoff=26, atom_count_cutoff=1000):
     for line in f:
         values = [x.strip() for x in line.strip().split("\t")]
         if len( values) != 4:
-            print >> sys.stderr, "Ignoring line:", line,
+            print("Ignoring line:", line, end=' ', file=sys.stderr)
             continue
-        cid, inchikey, smiles, name = [x.strip() for x in line.strip().split("\t")]
+        cid, inchikey, smiles, name = (x.strip() for x in line.strip().split("\t"))
         if len( name) <= name_cutoff and len( [x for x in smiles if x.isupper()]) <= atom_count_cutoff and _allow_molecule( name, smiles):
-            print line[:-1]
+            print(line[:-1])
             added += 1
         else:
             ignored += 1
@@ -230,9 +232,9 @@ def add_synonyms_old( fname, only_first=3):
             if i % 500 == 0:
                 connection.commit()
             if i % 10000 == 0:
-                print "Added %d" % i
+                print("Added %d" % i)
         if line_count % 100000 == 0:
-            print "-- %dk lines --" % (line_count // 1000)
+            print("-- %dk lines --" % (line_count // 1000))
         if line_count % 1000000 == 0:
             break
     connection.commit()
@@ -250,7 +252,7 @@ def add_synonyms( fname, only_first=3):
     last_cid = None
     line_count = 0
     c.execute( "SELECT id FROM structures;")
-    cids = set( [row[0] for row in c])
+    cids = { row[0] for row in c}
     for line in f:
         line_count += 1
         parts = line.split()
@@ -268,9 +270,9 @@ def add_synonyms( fname, only_first=3):
             if i % 500 == 0:
                 connection.commit()
             if i % 10000 == 0:
-                print "Added %d" % i
+                print("Added %d" % i)
         if line_count % 1000000 == 0:
-            print "-- %dk lines --" % (line_count // 1000)
+            print("-- %dk lines --" % (line_count // 1000))
         #if line_count % 1000000 == 0:
         #    break
     connection.commit()
@@ -296,37 +298,37 @@ if __name__ == "__main__":
     (options, args) = op.parse_args()
 
     if options.command == "test":
-        print get_compounds_from_database( inchi="1/C4H10/c1-3-4-2/h3-4H2,1-2H3")
-        print get_compounds_from_database( smiles="O")
-        import smiles
-        print find_molecule_in_database( smiles.text_to_mol("C1CCC=CC1"))
-        print find_molecule_in_database( smiles.text_to_mol("c1ccccc1C"))
-        print get_compounds_from_database( synonym="toluene")
+        print(get_compounds_from_database( inchi="1/C4H10/c1-3-4-2/h3-4H2,1-2H3"))
+        print(get_compounds_from_database( smiles="O"))
+        from . import smiles
+        print(find_molecule_in_database( smiles.text_to_mol("C1CCC=CC1")))
+        print(find_molecule_in_database( smiles.text_to_mol("c1ccccc1C")))
+        print(get_compounds_from_database( synonym="toluene"))
     elif options.command in ('update','rebuild','synonyms'):
         if not options.command == 'synonyms':
             if len( args) >= 1:
                 fname = args[0]
             else:
-                print >> sys.stderr, "You must supply a valid filename of a file containing structures to be read."
+                print("You must supply a valid filename of a file containing structures to be read.", file=sys.stderr)
                 sys.exit()
             if options.command == 'rebuild':
                 if os.path.exists( Config.database_file):
                     try:
                         os.remove( Config.database_file)
-                    except Exception, e:
-                        print >> sys.stderr, "Old database file could not be removed. Reason: %s" % e
-                        print >> sys.stderr, "Quitting.."
+                    except Exception as e:
+                        print("Old database file could not be removed. Reason: %s" % e, file=sys.stderr)
+                        print("Quitting..", file=sys.stderr)
                         sys.exit()
                 create_database()
             added, ignored = fill_database( fname)
-            print "Added: %d, Ignored: %d" % (added, ignored)
+            print("Added: %d, Ignored: %d" % (added, ignored))
         if options.synonyms:
-            print "Adding synonyms"
+            print("Adding synonyms")
             #import profile
             #profile.run( 'add_synonyms( options.synonyms)')
             i = add_synonyms( options.synonyms)
             #i = 0
-            print "Added %d synonyms" % i
+            print("Added %d synonyms" % i)
     else:
         if options.command not in ("test","rebuild","update"):
-            print >> sys.argv, "Invalid action '%s'" % options.command
+            print("Invalid action '%s'" % options.command, file=sys.argv)

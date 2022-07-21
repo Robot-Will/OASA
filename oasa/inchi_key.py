@@ -17,6 +17,8 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import sys
 
 ver = sys.version_info
@@ -1190,7 +1192,7 @@ def minor_digest( minor):
 
 def compute_inchi_check( key):
   """this is not used in new InChIKey - starting from 1.02 version of InChI software"""
-  assert type( key) == type( "") or type( key) == type( u"")
+  assert type( key) == str or type( key) == str
   if key.startswith( "InChIKey="):
     key = key[9:]
   m = re.match( "^([A-Z]{14})-([A-Z]{9})$", key)
@@ -1206,9 +1208,9 @@ def compute_inchi_check( key):
 
 def flag_old( version, parts):
   """this code is for InChIKey from 1.02Beta version of InChI software!"""
-  assert type( version) == type( 0) and 1 <= version <= 3
+  assert type( version) == int and 1 <= version <= 3
   flag = 0
-  starts = set( [x[0] for x in parts])
+  starts = { x[0] for x in parts}
   if starts & set( "tbms"):
     flag |= 0x01
   if starts & set( "f"):
@@ -1221,7 +1223,7 @@ def flag_old( version, parts):
 
 def key_from_inchi_old( inp):
   """this code is for InChIKey from 1.02Beta version of InChI software"""
-  assert type( inp) == type( "") or type( inp) == type( u"")
+  assert type( inp) == str or type( inp) == str
   if inp.startswith("InChI="):
     inp = inp[6:]
   parts = inp.split( "/")
@@ -1230,9 +1232,9 @@ def key_from_inchi_old( inp):
     if len( parts) == 1:
       raise Exception( "Invalid InChI string '%s'" % inp)
     else:
-      raise Exception( "Invalid data in version part of InChI - '%s' in '%s'" % (version, inp))
+      raise Exception( f"Invalid data in version part of InChI - '{version}' in '{inp}'")
   elif version not in "123":
-    raise Exception( "Unsupported InChI version '%s' in '%s'" % (version, inp))
+    raise Exception( f"Unsupported InChI version '{version}' in '{inp}'")
   del parts[0]
   i = 1
   next = True
@@ -1259,7 +1261,7 @@ def key_from_inchi_old( inp):
 def check_inchi_key( key):
   """checks the InChIKey using the algorithm described in the manual to InChI 1.02beta;
   check character is not used in 1.02 final"""
-  assert type( key) == type( "") or type( key) == type( u"")
+  assert type( key) == str or type( key) == str
   if key.startswith( "InChIKey="):
     key = key[9:]
   m = re.match( "^([A-Z]{14})-([A-Z]{9})([A-Z])$", key)
@@ -1278,24 +1280,24 @@ import string
 
 def key_from_inchi( inp):
   """this is for new InChIKey starting with 1.02 release"""
-  assert type( inp) == type( "") or type( inp) == type( u"")
+  assert type( inp) == str or type( inp) == str
   if inp.startswith("InChI="):
     inp = inp[6:]
   parts = inp.split( "/")
   if not parts:
     raise Exception( "Invalid InChI string '%s'" % inp)
-  m = re.match( "(\d)(S)?", parts[0])
+  m = re.match( r"(\d)(S)?", parts[0])
   if not m:
-    raise Exception( "Invalid data in version part of InChI - '%s' in '%s'" % (parts[0], inp))
+    raise Exception( f"Invalid data in version part of InChI - '{parts[0]}' in '{inp}'")
   else:
     version, standard = m.groups()
   if not version.isdigit():
     if len( parts) == 1:
       raise Exception( "Invalid InChI string '%s'" % inp)
     else:
-      raise Exception( "Invalid data in version part of InChI - '%s' in '%s'" % (version, inp))
+      raise Exception( f"Invalid data in version part of InChI - '{version}' in '{inp}'")
   elif version not in "123":
-    raise Exception( "Unsupported InChI version '%s' in '%s'" % (version, inp))
+    raise Exception( f"Unsupported InChI version '{version}' in '{inp}'")
   elif standard != "S":
     return key_from_inchi_old( inp)
     #raise Exception( "InChIKey generation from InChI is only supported for standard InChI (starting with '1S/'); sorry - invalid version part '%s'" % parts[0])
@@ -1339,11 +1341,11 @@ if __name__ == "__main__":
   inp = "InChI=1S/C6H10/c1-3-5-6-4-2/h3-6H,1-2H3/b5-3+,6-4+"
   out = "APPOKADJQUIAHP-GGWOSOGESA-N"
   ret = key_from_inchi( inp)
-  print ret
-  print ret == out
+  print(ret)
+  print(ret == out)
 
   if False:
-    f = file( "test_inchi_key.txt","r")
+    f = open( "test_inchi_key.txt")
     odd = True
     for line in f:
       if odd:
@@ -1351,8 +1353,8 @@ if __name__ == "__main__":
       else:
         key = line.strip()
         if not key == "InChIKey="+key_from_inchi( inchi):
-          print inchi
-          print key
+          print(inchi)
+          print(key)
         
       odd = not odd
     f.close()

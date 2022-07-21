@@ -17,25 +17,27 @@
 
 #--------------------------------------------------------------------------
 
-from plugin import plugin
-from molecule import molecule
-import periodic_table as pt
-import molfile
-import misc
+from __future__ import absolute_import
+from __future__ import print_function
+from .plugin import plugin
+from .molecule import molecule
+from . import periodic_table as pt
+from . import molfile
+from . import misc
 
 import re
 
 import operator
 import time
 import xml.dom.minidom as dom
-import dom_extensions
+from . import dom_extensions
 import string
 import os
-import coords_generator
-from oasa_exceptions import oasa_not_implemented_error, oasa_inchi_error, oasa_unsupported_inchi_version_error
+from . import coords_generator
+from .oasa_exceptions import oasa_not_implemented_error, oasa_inchi_error, oasa_unsupported_inchi_version_error
 import select
 import sys
-from stereochemistry import cis_trans_stereochemistry
+from .stereochemistry import cis_trans_stereochemistry
 
 class inchi( plugin):
 
@@ -174,7 +176,7 @@ class inchi( plugin):
 
       # here we check out if the molecule seems ok
       fvs = [v for v in self.structure.vertices if v.free_valency]
-      if not fvs and not filter( None, [not v.order for v in self.structure.edges]):
+      if not fvs and not [_f for _f in [not v.order for v in self.structure.edges] if _f]:
         repeat = False
       else:
         if len( fvs) == 1:
@@ -186,7 +188,7 @@ class inchi( plugin):
 
       if repeat and self._no_possibility_to_improve and self.charge:
         try:
-          self._charge_mover.next()
+          next(self._charge_mover)
         except StopIteration:
           pass
         else:
@@ -233,8 +235,8 @@ class inchi( plugin):
     if not layer:
       return 
     chunks = re.split( "([0-9]*)", layer)
-    chunks = filter( None, chunks)
-    chunks = filter( lambda x: x!='-', chunks)
+    chunks = [_f for _f in chunks if _f]
+    chunks = [x for x in chunks if x!='-']
     last_atom = None
     bracket_openings = []
     for c in chunks:
@@ -249,7 +251,7 @@ class inchi( plugin):
         try:
           i = int( c)
         except:
-          raise ValueError, "unexpected character %s in the connectivity layer" % c 
+          raise ValueError("unexpected character %s in the connectivity layer" % c) 
         # atom
         if last_atom:
           self.structure.add_edge( last_atom-1, i-1)
@@ -267,7 +269,7 @@ class inchi( plugin):
       # we can skip movable hydrogens
       self._read_simple_hydrogen_layer( fixed_layer)
     else:
-      re_for_brackets = "\([H\d,\-]+?\)"
+      re_for_brackets = r"\([H\d,\-]+?\)"
       brackets = re.findall( re_for_brackets, layer)
       for bracket in brackets:
         self._process_moving_hydrogen( bracket[1:-1], run=run)
@@ -284,7 +286,7 @@ class inchi( plugin):
     """just takes the layer and adds hydrogens according to what it seas,
     it does not care about moving hydrogens and stuff"""
 
-    re_for_brackets = "\([H\d,\-]+?\)"
+    re_for_brackets = r"\([H\d,\-]+?\)"
     layer = re.sub( re_for_brackets, "", layer)  # clean the brackets out
 
     for vs, num in self._parse_h_layer( layer):
@@ -334,14 +336,14 @@ class inchi( plugin):
         assert steps < 10
         change = False
         for v in self.structure.vertices:
-          if v.free_valency and sum( [n.free_valency for n in v.neighbors]) < v.free_valency:
+          if v.free_valency and sum( n.free_valency for n in v.neighbors) < v.free_valency:
             charge = self._valency_to_charge( v, charge)
             change = True
             break
 
     # this could be rewritten to put charges to places where a segment with odd number of free_valencies is
     # this would be more general than counting the free_valencies for the whole molecule
-    free_valencies = sum( [a.free_valency for a in self.structure.vertices])
+    free_valencies = sum( a.free_valency for a in self.structure.vertices)
     if free_valencies % 2:
       # odd number of free_valencies means we have to put the charge somewhere to make a free_valency there
       change = True
@@ -353,7 +355,7 @@ class inchi( plugin):
         assert steps < 10
 
         for v in self.structure.vertices:
-          if v.symbol != 'C' and not v.free_valency and filter( None, [n.free_valency for n in v.neighbors]):
+          if v.symbol != 'C' and not v.free_valency and [_f for _f in [n.free_valency for n in v.neighbors] if _f]:
             v.charge = charge
             charge = 0
             change = True
@@ -418,7 +420,7 @@ class inchi( plugin):
 
     if self._protonation_dealt_with_already:
       # p was solved above
-      dp = self._protonation_dealt_with_already - sum( [v.charge for v in self.structure.vertices])
+      dp = self._protonation_dealt_with_already - sum( v.charge for v in self.structure.vertices)
       if dp > 0:
         # there were no forced charges, so we are not in a zwittrion state, huh, who does not understand that?!
         for v in self.structure.vertices:
@@ -483,7 +485,7 @@ class inchi( plugin):
     layer = self.get_layer( "b")
     if not layer:
       return
-    for a1,a2,sign in re.findall( "(\d+)-(\d+)([-+?u])", layer):
+    for a1,a2,sign in re.findall( r"(\d+)-(\d+)([-+?u])", layer):
       atom1 = self.get_atom_with_inchi_number( int( a1))
       atom2 = self.get_atom_with_inchi_number( int( a2))
       bond = self.structure.get_edge_between( atom1, atom2)
@@ -521,7 +523,7 @@ class inchi( plugin):
 
     ret = 0
 
-    re_for_brackets = "\([H\d,\-]+?\)"
+    re_for_brackets = r"\([H\d,\-]+?\)"
     brackets = re.findall( re_for_brackets, layer)
     for bracket in brackets:
       ret += self._get_hs_in_moving_hydrogen( bracket[1:-1])
@@ -583,7 +585,7 @@ class inchi( plugin):
       return []
     variations = misc.gen_variations( vs, take)
     for i in range( run):
-      vs = variations.next()
+      vs = next(variations)
         
     while hs:
       for v in vs:
@@ -622,21 +624,21 @@ class inchi( plugin):
     for chunk in chunks:
       try:
         head, tail = chunk.split( 'H')
-      except Exception, e:
+      except Exception as e:
         raise oasa_inchi_error( "error in hydrogen layer - missing H symbol")
       num_h = tail and int( tail) or 1
       vertices = []
       for p in head.split( ","):
         if "-" in p:
           try:
-            a, b = map( int, p.split("-"))
-          except Exception, e:
+            a, b = list(map( int, p.split("-")))
+          except Exception as e:
             raise oasa_inchi_error( "error in hydrogen layer - non-number character(s) present in atom range specification")
-          vertices.extend( range( a, b+1))
+          vertices.extend( list(range( a, b+1)))
         else:
           try:
             vertices.append( int( p))
-          except Exception, e:
+          except Exception as e:
             raise oasa_inchi_error( "error in hydrogen layer - non-number character(s) present in atom specification")
 
       yield vertices, num_h
@@ -724,7 +726,7 @@ class inchi( plugin):
     while go:
       i += 1
       if i> 100:
-        print "aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        print("aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa")
         break
       go = False
       # set all valency_raise to zero
@@ -733,7 +735,7 @@ class inchi( plugin):
       # mark vertices with the demands to raise valency
       for comp in self.structure._gen_free_valency_connected_components():
 #        print map( str, comp)
-        if sum( [v.free_valency for v in comp]) % 2:
+        if sum( v.free_valency for v in comp) % 2:
           go = True
           for v in comp:
             for ne in v.neighbors:
@@ -774,7 +776,7 @@ def generate_inchi_and_inchikey( m, program=None, fixed_hs=True, ignore_key_erro
   """ignore the case when InChIKey cannot be generated for some reason
   (no mhash library and old InChI program)"""
   if not program:
-    import config
+    from . import config
     program = config.Config.inchi_binary_path
   mf = molfile.mol_to_text( m)
   if os.name == 'nt':
@@ -804,7 +806,7 @@ def generate_inchi_and_inchikey( m, program=None, fixed_hs=True, ignore_key_erro
   if not key:
     # probably old version of the InChI software
     try:
-      import inchi_key
+      from . import inchi_key
     except ImportError:
       if ignore_key_error:
         key = None
@@ -877,26 +879,26 @@ def mol_to_file( mol, f):
 
 if __name__ == '__main__':
 
-  import smiles
+  from . import smiles
 
   def main( text, cycles):
     t1 = time.time()
     for jj in range( cycles):
       mol = text_to_mol( text, calc_coords=True, include_hydrogens=False)
-      print map( str, [b for b in mol.bonds if b.order == 0])
-      print "  smiles: ", smiles.mol_to_text( mol)
-      print "  inchi:  ", generate_inchi( mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1")
-      print "  charge: ", sum( [a.charge for a in mol.vertices])
-      print "  mw:     ", mol.weight
-    print generate_inchi_and_inchikey( mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1")
+      print(list(map( str, [b for b in mol.bonds if b.order == 0])))
+      print("  smiles: ", smiles.mol_to_text( mol))
+      print("  inchi:  ", generate_inchi( mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1"))
+      print("  charge: ", sum( a.charge for a in mol.vertices))
+      print("  mw:     ", mol.weight)
+    print(generate_inchi_and_inchikey( mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1"))
     t1 = time.time() - t1
-    print 'time per cycle', round( 1000*t1/cycles, 2), 'ms'
+    print('time per cycle', round( 1000*t1/cycles, 2), 'ms')
 
   repeat = 3
   inch = "InChI=1S/C6H10/c1-3-5-6-4-2/h3-6H,1-2H3/b5-3-,6-4+" #1/C6H6/c1-2-3-4-5-6-1/h1-6H"
-  print "oasa::INCHI DEMO"
-  print "converting following inchi into smiles (%d times)" % repeat
-  print "  inchi:   %s" % inch
+  print("oasa::INCHI DEMO")
+  print("converting following inchi into smiles (%d times)" % repeat)
+  print("  inchi:   %s" % inch)
   
   #import profile
   #profile.run( 'main( inch, repeat)')

@@ -23,9 +23,11 @@
 
 """some extensions to DOM for more convenient work"""
 
+from __future__ import absolute_import
 import re
 import xml.dom.minidom as dom
 import operator
+from functools import reduce
 #from __future__ import division
 
 
@@ -73,10 +75,10 @@ def getTextFromElement( element):
   return text
 
 def childNodesWithoutEmptySpaces( node):
-  return filter( isNotEmptyText, node.childNodes)
+  return list(filter( isNotEmptyText, node.childNodes))
 
 def isNotEmptyText( element):
-  empty = re.compile('^\s*$')
+  empty = re.compile(r'^\s*$')
   if element.nodeValue and empty.match( element.nodeValue): #(element.nodeValue == '\n') or (element.nodeValue == '\t'):
     return 0
   else:
@@ -133,7 +135,7 @@ def simpleXPathSearch( element, path):
   out = [element]
   for atomic_path in atomic_paths:
     search_with_path = lambda x: _atomicXPathSearch( x, atomic_path)
-    out =  reduce( operator.add, map( search_with_path, out), [])
+    out =  reduce( operator.add, list(map( search_with_path, out)), [])
   return out
 
 

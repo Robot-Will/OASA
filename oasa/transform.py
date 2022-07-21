@@ -24,8 +24,9 @@
 """this module provides basic coordinate transformations based on matrix algebra"""
 
 from __future__ import division
+from __future__ import absolute_import
 from math import cos, sin, pi
-import geometry
+from . import geometry
 
 class transform:
   """this class provides basic higher-level interface for coordinate transforms"""

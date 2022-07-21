@@ -23,15 +23,16 @@
 ##  localized bond order is available
 
 
+from __future__ import absolute_import
 import sys
 sys.path.append( '../')
 
-import graph
+from . import graph
 from warnings import warn
 import math
 
 
-class bond( graph.edge, object):
+class bond( graph.edge):
   """is based on edge, however the vertices are not a Set anymore,
   we need to preserve the order (for instance for wedge bonds).
   type is 'n'-normal, 'w'-wedge, 'h'-hatch, 'a'-adder, 'b'-bold, 'd'-dash"""

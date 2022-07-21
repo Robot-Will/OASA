@@ -18,9 +18,11 @@
 #--------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 from math import pi, sqrt, sin, cos
-import geometry
-import misc
+from . import geometry
+from . import misc
 
 import warnings
 
@@ -43,7 +45,7 @@ class coords_generator:
         for a in (st.references[0],st.references[-1]):
           self.stereo[a] = self.stereo.get( a, []) + [st]
     # at first we have a look if there is already something with coords
-    atms = set( [a for a in mol.vertices if a.x != None and a.y != None])
+    atms = { a for a in mol.vertices if a.x != None and a.y != None}
     # then we check if they are in a continuos block but not the whole molecule
     # (in this case we regenerate all the coords if force, otherwise exit)
     if len( atms) == len( mol.vertices) and not force:
@@ -58,7 +60,7 @@ class coords_generator:
         backbone = atms
       else:
         # we should not be here, but when yes than we have to solve it
-        maxlength = max( map( len, subs))
+        maxlength = max( list(map( len, subs)))
         backbone = [su for su in subs if len( su) == maxlength][0]
         # we have to set the coords to None (for sure)
         for sub in subs:
@@ -109,7 +111,7 @@ class coords_generator:
         backbone = self.rings.pop(imax)
         gcoords = gen_ring_coords( len( backbone), side_length=self.bond_length)
         for v in mol.sort_vertices_in_path( backbone):
-          v.x, v.y = gcoords.next()
+          v.x, v.y = next(gcoords)
         processed += backbone
         processed += self.process_all_anelated_rings( backbone)
       elif len( mol.vertices) == 1:
@@ -271,7 +273,7 @@ class coords_generator:
       gcoords = gen_coords_from_stream( gen_angle_stream( angle, start_from=angles[i+1]+angle),
                                         length = self.bond_length)
       for a in to_go:
-        dx, dy = gcoords.next()
+        dx, dy = next(gcoords)
         a.x = v.x + dx
         a.y = v.y + dy
     return to_go
@@ -281,7 +283,7 @@ class coords_generator:
     bl = bond_length or self.bond_length
     x, y = start.x, start.y
     for v in atoms:
-      a = gen.next()
+      a = next(gen)
       x += bl*cos( a)
       y += bl*sin( a)
       v.x, v.y = x, y
@@ -322,7 +324,7 @@ class coords_generator:
       ring.remove( v2)
       if not v1 in ring[0].get_neighbors():
         v1, v2 = v2, v1
-      side = sum( [geometry.on_which_side_is_point((v1.x,v1.y,v2.x,v2.y),(v.x,v.y)) for v in base])
+      side = sum( geometry.on_which_side_is_point((v1.x,v1.y,v2.x,v2.y),(v.x,v.y)) for v in base)
       if not side:
         warnings.warn( "this should not happen")
       ca = geometry.clockwise_angle_from_east( v1.x-v2.x, v1.y-v2.y)
@@ -370,7 +372,7 @@ class coords_generator:
       if angle_shift:
         da += 2*angle_shift/(len( to_go))
       ca = deg_to_rad( 180-(overall_angle - blocked_angle - len( to_go) * da + angle_shift)/2)  # connection angle
-      side = sum( [geometry.on_which_side_is_point( (v1.x,v1.y,v2.x,v2.y),(v.x,v.y)) for v in back if v != v1 and v != v2])
+      side = sum( geometry.on_which_side_is_point( (v1.x,v1.y,v2.x,v2.y),(v.x,v.y)) for v in back if v != v1 and v != v2)
       # we need to make sure that the ring is drawn on the right side
       if side > 0:
         ca = -ca
@@ -383,7 +385,7 @@ class coords_generator:
       gcoords = gen_angle_stream( deg_to_rad( da), start_from= ca)
       x, y = v1.x, v1.y
       for i in range( len( to_go) +1):
-        a = gcoords.next()
+        a = next(gcoords)
         x += self.bond_length*cos( a)
         y += self.bond_length*sin( a)
       # end of dry run, we can scale the bond_length now
@@ -407,7 +409,7 @@ def gen_ring_coords( size, side_length=1):
                                        length=side_length)
   x , y = 0, 0
   for i in range( size):
-    dx, dy = coords.next()
+    dx, dy = next(coords)
     x += dx
     y += dy
     yield x,y
@@ -444,7 +446,7 @@ def rad_to_deg( rad):
 
 
 def show_mol( mol):
-  from Tkinter import Tk, Canvas, Frame
+  from tkinter import Tk, Canvas, Frame
 
   app = Tk()
   app.title( "oasa")
@@ -502,22 +504,22 @@ def calculate_coords( mol, bond_length=0, force=0):
 
 if __name__ == '__main__':
 
-  import smiles
-  from molecule import molecule
+  from . import smiles
+  from .molecule import molecule
 
   #sm = "CP(c1ccccc1)(c2ccccc2)c3ccccc3"
   #sm = 'C1CC2C1CCCC3C2CC(CCC4)C4C3'
   #sm = "C\C=C/CC#CCCCC\C=C=C=C/CC"
-  sm = "C/C(Cl)=C(\O)C"
+  sm = r"C/C(Cl)=C(\O)C"
   #sm = "C1CCC1C/C=C\CCCCC"
   #sm = "C25C1C3C5C4C2C1C34"
   #sm = 'C1CC2CCC1CC2'
   #sm = 'C1CC5(CC(C)CC5)CC(C)C12CC(CC(C(C)(C)CCCC)CCC)CC23C(CC)CC3'
   #sm = 'CCCC(C)(CCC)CCC(Cl)C(CCCCC)CCC(C)CCC'
 
-  print "oasa::coords_generator DEMO"
-  print "generating coords for following smiles"
-  print "  %s" % sm
+  print("oasa::coords_generator DEMO")
+  print("generating coords for following smiles")
+  print("  %s" % sm)
  
   mol = smiles.text_to_mol( sm, calc_coords=False)
 
@@ -525,7 +527,7 @@ if __name__ == '__main__':
   #cg = coords_generator()
   t = time.time()
   calculate_coords( mol, force=1)
-  print "generation time: %.3f ms" % ((time.time()-t)*1000)
+  print("generation time: %.3f ms" % ((time.time()-t)*1000))
 
   show_mol( mol)
 

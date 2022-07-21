@@ -17,20 +17,24 @@
 
 #--------------------------------------------------------------------------
 
-from plugin import plugin
-from molecule import molecule, equals
-import periodic_table as PT
-import oasa_exceptions
-import reaction
-import stereochemistry
+from __future__ import absolute_import
+from __future__ import print_function
+from .plugin import plugin
+from .molecule import molecule, equals
+from . import periodic_table as PT
+from . import oasa_exceptions
+from . import reaction
+from . import stereochemistry
 
 
-from config import Config
+from .config import Config
 
 import re
 
 import operator
 import time
+import six
+from functools import reduce
 
 class smiles( plugin):
 
@@ -58,7 +62,7 @@ class smiles( plugin):
         # bacause there is nothing we can do if there are clashing constrains anyway
         other, st = others[0]
         end1,inside1,inside2,end2 = st.references
-        if set( other.vertices) == set( [end1,inside1]):
+        if set( other.vertices) == { end1,inside1}:
           v1 = inside1
           v2 = end1
         else:
@@ -95,7 +99,7 @@ class smiles( plugin):
     # internally revert \/ bonds before numbers, this makes further processing much easier
     text = re.sub( r"([\\/])([0-9])", lambda m: (m.group(1)=="/" and "\\" or "/")+m.group(2), text)
     # // end
-    chunks = re.split( "(\[.*?\]|[A-Z][a-z]?|%[0-9]{1,2}|[^A-Z]|[a-z])", text)
+    chunks = re.split( r"(\[.*?\]|[A-Z][a-z]?|%[0-9]{1,2}|[^A-Z]|[a-z])", text)
     chunks = self._check_the_chunks( chunks)
     last_atom = None
     last_bond = None
@@ -185,7 +189,7 @@ class smiles( plugin):
   def _parse_atom_spec( self, c, a):
     """c is the text spec,
     a is an empty prepared vertex (atom) instance"""
-    bracketed_atom = re.compile("^\[(\d*)([A-z][a-z]?)(.*?)\]")
+    bracketed_atom = re.compile(r"^\[(\d*)([A-z][a-z]?)(.*?)\]")
     m = bracketed_atom.match( c)
     if m:
       isotope, symbol, rest = m.groups()
@@ -198,7 +202,7 @@ class smiles( plugin):
     if isotope:
       a.isotope = int( isotope)
     # hydrogens
-    _hydrogens = re.search( "H(\d*)", rest)
+    _hydrogens = re.search( r"H(\d*)", rest)
     h_count = 0
     if _hydrogens:
       if _hydrogens.group(1):
@@ -216,7 +220,7 @@ class smiles( plugin):
         charge *= -1
     # second one, only if the first one failed
     else:
-      _charge = re.search( "([-+])(\d?)", rest)
+      _charge = re.search( r"([-+])(\d?)", rest)
       if _charge:
         if _charge.group(2):
           charge = int( _charge.group(2))
@@ -385,7 +389,7 @@ class smiles( plugin):
     for e in mol.edges:
       e.disconnected = False
     # here tetrahedral stereochemistry is added
-    for v, st in self._stereo_centers.iteritems():
+    for v, st in self._stereo_centers.items():
       processed_neighbors = []
       for n in self._processed_atoms:
         if n in v.neighbors:
@@ -428,7 +432,7 @@ class smiles( plugin):
         else:
           self.ring_joins.append( e)
     try:
-      start, end = filter( lambda x: x.get_degree() == 1, mol.vertices)
+      start, end = (x for x in mol.vertices if x.get_degree() == 1)
     except:
       #print filter( lambda x: x.get_degree() == 1, mol.vertices)
       raise "shit"
@@ -453,8 +457,7 @@ class smiles( plugin):
           yield self.recode_oasa_to_smiles_bond( edg)
           v1, v2 = edg.vertices
           vv = (v1 != v) and v1 or v2
-          for i in self._get_smiles( branch, start_from=vv):
-            yield i
+          yield from self._get_smiles( branch, start_from=vv)
           yield ')'
       # bond leading to the neighbor
       for e, neighbor in v.get_neighbor_edge_pairs():
@@ -471,7 +474,7 @@ class smiles( plugin):
 
   def _create_atom_smiles( self, v):
     self._processed_atoms.append( v)
-    if 'aromatic' in v.properties_.keys():
+    if 'aromatic' in list(v.properties_.keys()):
       symbol = v.symbol.lower()
     else:
       symbol = v.symbol
@@ -495,7 +498,7 @@ class smiles( plugin):
         stereo = "{{stereo%d}}" % self.molecule.vertices.index( v)
       else:
         stereo = ""
-      return "[%s%s%s%s%s]" % (isotope, symbol, stereo, h_spec, charge)
+      return f"[{isotope}{symbol}{stereo}{h_spec}{charge}]"
     else:
       # no need to use square brackets
       return symbol
@@ -517,13 +520,13 @@ class smiles( plugin):
     #
     # the edges with crowded atoms
     for e in mol.edges:
-      d1, d2 = [x.get_degree() for x in e.get_vertices()]
+      d1, d2 = (x.get_degree() for x in e.get_vertices())
       if d1 > 2 and d2 > 2 and not mol.is_edge_a_bridge_fast_and_dangerous( e):
         mol.temporarily_disconnect_edge( e)
         return e, mol, None, None
     # the other valuable non-bridge edges
     for e in mol.edges:
-      d1, d2 = [x.get_degree() for x in e.get_vertices()]
+      d1, d2 = (x.get_degree() for x in e.get_vertices())
       if (d1 > 2 or d2 > 2) and not mol.is_edge_a_bridge_fast_and_dangerous( e):
         mol.temporarily_disconnect_edge( e)
         return e, mol, None, None
@@ -537,13 +540,13 @@ class smiles( plugin):
     ring_joints_in_branch = 1000
     ring_join_vertices = set( reduce( operator.add, [e.vertices for e in self.ring_joins], []))
     for e in mol.edges:
-      d1, d2 = [x.get_degree() for x in e.get_vertices()]
+      d1, d2 = (x.get_degree() for x in e.get_vertices())
       if d1 > 2 or d2 > 2:
         ps = mol.get_pieces_after_edge_removal( e)
         if len( ps) == 1:
-          print "impossible"
+          print("impossible")
           continue
-        lenghts = map( len, ps)
+        lenghts = list(map( len, ps))
         ms = min( lenghts)
         p1, p2 = ps
         the_mol = (len( p1) < len( p2)) and p2 or p1
@@ -577,9 +580,9 @@ class smiles( plugin):
     """returns (broken edge, resulting mol, atom where mol was disconnected, disconnected branch)"""
     # we cannot do much about this part
     if not mol.is_connected():
-      print "unconnected ", mol
+      print("unconnected ", mol)
     if start_from and start_from.get_degree() > 1:
-      e = start_from._neighbors.keys()[0]
+      e = list(start_from._neighbors.keys())[0]
       mol.disconnect_edge( e)
       ps = [i for i in mol.get_connected_components()]
       if len( ps) == 1:
@@ -594,7 +597,7 @@ class smiles( plugin):
         return e, p, v, px
 
     for e in mol.edges:
-      d1, d2 = [x.get_degree() for x in e.get_vertices()]
+      d1, d2 = (x.get_degree() for x in e.get_vertices())
       if (d1 > 2 or d2 > 2):
         mol.disconnect_edge( e)
         ps = [i for i in mol.get_connected_components()]
@@ -612,7 +615,7 @@ class smiles( plugin):
 
           v = (v1 in p1.vertices) and v1 or v2
           return e, p1, v, p2
-    print mol, mol.is_connected(), ',', map( len, mol.get_connected_components()), ',', start_from
+    print(mol, mol.is_connected(), ',', list(map( len, mol.get_connected_components())), ',', start_from)
     raise "fuck, how comes!?"
 
   @staticmethod
@@ -643,7 +646,7 @@ def is_line( mol):
   return False
 
 def is_pure_ring( mol):
-  return filter( lambda x: x.get_degree() != 2, mol.vertices) == []
+  return [x for x in mol.vertices if x.get_degree() != 2] == []
 
 def match_atom_lists( l1, l2):
   """sort of bubble sort with counter"""
@@ -663,7 +666,7 @@ def match_atom_lists( l1, l2):
 ##################################################
 ## MODULE INTERFACE - newstyle
 
-from converter_base import converter_base
+from .converter_base import converter_base
 
 class smiles_converter( converter_base):
 
@@ -767,7 +770,7 @@ converter = smiles_converter
 ##################################################
 ## MODULE INTERFACE - oldstyle
 
-import coords_generator
+from . import coords_generator
 
 reads_text = True
 writes_text = True
@@ -818,12 +821,12 @@ if __name__ == '__main__':
       mols = conv.read_text( text)
       for mol in mols:
         #mol.remove_unimportant_hydrogens()
-        print "  summary formula:   ", mol.get_formula_dict()        
+        print("  summary formula:   ", mol.get_formula_dict())        
       text = conv.mols_to_text( mols)
-      print "  generated SMILES:   %s" % text
-      print "  --"
+      print("  generated SMILES:   %s" % text)
+      print("  --")
     t = time.time()-t
-    print 'time per cycle', round( 1000*t/cycles, 2), 'ms'
+    print('time per cycle', round( 1000*t/cycles, 2), 'ms')
 
   repeat = 3
 
@@ -833,10 +836,10 @@ if __name__ == '__main__':
   else:
     text = sys.argv[1]
 
-  print "oasa::SMILES DEMO"
-  print "converting following smiles to smiles (%d times)" % repeat
-  print "  starting with:      %s" % text
-  print "  --------------------"
+  print("oasa::SMILES DEMO")
+  print("converting following smiles to smiles (%d times)" % repeat)
+  print("  starting with:      %s" % text)
+  print("  --------------------")
   main( text, repeat)
 
 # DEMO END

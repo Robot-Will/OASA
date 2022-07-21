@@ -18,14 +18,17 @@
 #--------------------------------------------------------------------------
 
 
+from __future__ import absolute_import
 import cairo
-import geometry
+from . import geometry
 import math
-import misc
+from . import misc
 import operator
 import copy
 import sys
-import transform3d
+from . import transform3d
+import six
+from functools import reduce
 
 class cairo_out:
 
@@ -140,7 +143,7 @@ class cairo_out:
 
 
   def __init__( self, **kw):
-    for k,v in self.__class__.default_options.iteritems():
+    for k,v in self.__class__.default_options.items():
       setattr( self, k, v)
     # list of paths that contribute to the bounding box (probably no edges)
     self._vertex_to_bbox = {} # vertex-to-bbox mapping
@@ -490,7 +493,7 @@ class cairo_out:
     return angle
 
   def _draw_vertex( self, v):
-    pos = sum( [(a.x < v.x) and -1 or 1 for a in v.neighbors if abs(a.x-v.x)>0.2])
+    pos = sum( (a.x < v.x) and -1 or 1 for a in v.neighbors if abs(a.x-v.x)>0.2)
     if 'show_symbol' in v.properties_:
       show_symbol = v.properties_['show_symbol']
     else:
@@ -791,7 +794,7 @@ def mols_to_cairo( mols, filename, format, **kw):
 
 if __name__ == "__main__":
 
-  import smiles
+  from . import smiles
 
   mol = smiles.text_to_mol( "FCCSCl", calc_coords=30)
   #mol.vertices[0].properties_['show_hydrogens'] = False

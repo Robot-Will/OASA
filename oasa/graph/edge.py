@@ -19,6 +19,7 @@
 
 
 
+from __future__ import absolute_import
 from warnings import warn
 import copy
 
@@ -27,7 +28,7 @@ class edge:
   attrs_to_copy = ("disconnected",)
 
   def __init__( self, vs=[]):
-    self.vertices = set([])
+    self.vertices = set()
     self.set_vertices( vs)
     self.properties_ = {}
     self.disconnected = False

@@ -20,15 +20,18 @@
 """This module is intended for integration of OpenBabel/Pybel into OASA.
 It provides functionality for translation of OASA molecules into Pybel molecules."""
 
+from __future__ import absolute_import
+from __future__ import print_function
 import pybel, openbabel
-from molecule import molecule
-from atom import atom
-from bond import bond
-from periodic_table import periodic_table as PT
-num2symbol = dict( [(v['ord'],k) for k,v in PT.iteritems()])
+from .molecule import molecule
+from .atom import atom
+from .bond import bond
+from .periodic_table import periodic_table as PT
+import six
+num2symbol = { v['ord']:k for k,v in PT.items()}
 
 
-class PybelConverter( object):
+class PybelConverter:
 
   ## -------------------- Pybel to OASA --------------------
 
@@ -121,7 +124,7 @@ class PybelConverter( object):
     """returns a list of OASA molecules from a string"""
     obc = openbabel.OBConversion()
     if not obc.SetInFormat( format):
-        raise ValueError, "invalid format %s" % format
+        raise ValueError("invalid format %s" % format)
     obmol = openbabel.OBMol()
     ok = obc.ReadString( obmol, text)
     mols = []
@@ -144,7 +147,7 @@ class PybelConverter( object):
     conv = openbabel.OBConversion()
     ret = []
     for form in conv.GetSupportedInputFormat():
-      form_id, desc = [x.strip() for x in form.split("--")]
+      form_id, desc = (x.strip() for x in form.split("--"))
       ret.append( (form_id, desc))
     return ret
 
@@ -153,19 +156,19 @@ class PybelConverter( object):
     conv = openbabel.OBConversion()
     ret = []
     for form in conv.GetSupportedOutputFormat():
-      form_id, desc = [x.strip() for x in form.split("--")]
+      form_id, desc = (x.strip() for x in form.split("--"))
       ret.append( (form_id, desc))
     return ret
 
   ## // -------------------- conversion support --------------------
 
-class ForceFieldOptimizer( object):
+class ForceFieldOptimizer:
   """provides the forcefield interface for oasa molecules"""
   
   def __init__( self, mol, forcefield_name="Ghemical"):
     self.mol = mol
     self._amol, self._oatom2patom_idx = PybelConverter.oasa_to_pybel_molecule_with_atom_map( self.mol)
-    self._patom_idx2oatom = dict( [(v,k) for k,v in self._oatom2patom_idx.iteritems()])
+    self._patom_idx2oatom = { v:k for k,v in self._oatom2patom_idx.items()}
     self.forcefield_name = forcefield_name
     self.ff = openbabel.OBForceField.FindForceField( self.forcefield_name)
     self.ff.Setup( self._amol.OBMol)
@@ -196,41 +199,41 @@ if __name__ == "__main__":
   
   pmol = pybel.readstring("smi", "CC(=O)O")
   omol = PybelConverter.pybel_to_oasa_molecule( pmol)
-  print omol
-  import smiles
+  print(omol)
+  from . import smiles
   c = smiles.converter()
-  print c.mols_to_text( [omol])
+  print(c.mols_to_text( [omol]))
 
   #print get_supported_input_formats()
   #print get_supported_output_formats()
 
   if False:
-    import molfile
-    f = file( "tbu-benzen.mol", "r")
+    from . import molfile
+    f = open( "tbu-benzen.mol")
     mol = molfile.file_to_mol( f)
     f.close()
 
-    print PybelConverter.oasa_to_pybel_molecule( mol)
+    print(PybelConverter.oasa_to_pybel_molecule( mol))
 
     t = time.time()
     ff = ForceFieldOptimizer( mol)
     gen = ff.conjugate_gradients()
     for step in gen:
-      print step, ff.ff.Energy()
+      print(step, ff.ff.Energy())
       ff.update_coords()
-      print [a.coords for a in mol.atoms]
-    print time.time() - t
+      print([a.coords for a in mol.atoms])
+    print(time.time() - t)
 
   a = pybel.readstring( "smi", "CCCC\nCCC")
 
   for mol in PybelConverter.read_text( "smi", "CCCC\nCCC"):
-    print mol
+    print(mol)
 
-  print "AAAA"
-  t = file( "/zaloha/temp/3-chlorbenzoic_acid.cdx", "r").read()
+  print("AAAA")
+  t = open( "/zaloha/temp/3-chlorbenzoic_acid.cdx").read()
   pmol = pybel.readstring( "cdx", t)
-  print "XXX", pmol
+  print("XXX", pmol)
 
   for mol in PybelConverter.read_text( "cdx", t):
-    print mol
+    print(mol)
 

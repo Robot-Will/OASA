@@ -17,10 +17,12 @@
 
 #--------------------------------------------------------------------------
 
+from __future__ import absolute_import
+from __future__ import print_function
 import os, sys
 import anydbm
-import inchi as inchimod
-import inchi_key
+from . import inchi as inchimod
+from . import inchi_key
 
 
 
@@ -49,9 +51,9 @@ def database_string_to_compound( line):
     
 
 def mydb_to_gdbm( infilename, outfilename):
-    import gdbm
-    infile = file( infilename, "r")
-    base = gdbm.open( outfilename, "n")
+    import six.moves.dbm_gnu
+    infile = open( infilename)
+    base = six.moves.dbm_gnu.open( outfilename, "n")
     for line in infile:
         rec = database_string_to_compound( line)
         base[ rec['inchikey']] = rec['cid'] + " " + rec['name']
@@ -66,7 +68,7 @@ def get_compound_from_database( inchikey, database_file=None):
     else:
         raise Exception("Name database not found")
     base = anydbm.open( fname)
-    if base.has_key( inchikey):
+    if inchikey in base:
         cid, name = base[ inchikey].split( " ", 1)
         return {'inchikey': inchikey, 'cid': cid, 'name': name}
     else:
@@ -88,8 +90,8 @@ if __name__ == "__main__":
             try:
                 mydb_to_gdbm( fname, Config.database_file)
             except:
-                print "given file must be a text file with one compound per line in format 'InChI CID ### name'"
+                print("given file must be a text file with one compound per line in format 'InChI CID ### name'")
         else:
-            print "you must supply a valid filename to update the database or no argument for a test to run"
+            print("you must supply a valid filename to update the database or no argument for a test to run")
     else:
-        print get_compound_from_database( "IJDNQMDRQITEOD-UHFFFAOYSA-N")
+        print(get_compound_from_database( "IJDNQMDRQITEOD-UHFFFAOYSA-N"))

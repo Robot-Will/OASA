@@ -18,10 +18,11 @@
 #--------------------------------------------------------------------------
 
 
-import molecule
+from __future__ import absolute_import
+from . import molecule
 
 
-class Config (object):
+class Config :
   """this is a singleton class for library wide configuration"""
   
   molecule_class = molecule.molecule

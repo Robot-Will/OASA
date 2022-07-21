@@ -20,6 +20,7 @@
 
 """this module provides basic coordinate transformations in 3D based on matrix algebra"""
 
+from __future__ import absolute_import
 from math import cos, sin, pi
 
 class transform3d:

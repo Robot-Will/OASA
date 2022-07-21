@@ -36,7 +36,7 @@ class oasa_periodic_table_error( oasa_error):
     self.value = value
 
   def __str__( self):
-    return "OASA periodic_table error, id=%s, value=%s" % (self.id, self.value)
+    return f"OASA periodic_table error, id={self.id}, value={self.value}"
 
 
 
@@ -50,7 +50,7 @@ class oasa_invalid_atom_symbol( oasa_error):
     self.symbol = symbol
 
   def __str__( self):
-    return "Symbol '%s' not allowed (%s)" % (self.symbol, self.value)
+    return f"Symbol '{self.symbol}' not allowed ({self.value})"
 
 
 
@@ -63,7 +63,7 @@ class oasa_invalid_value( oasa_error):
     self.meaning = meaning
 
   def __str__( self):
-    return "The value for '%s' is not allowed (%s)" % (self.meaning, self.value)
+    return f"The value for '{self.meaning}' is not allowed ({self.value})"
 
 
 
@@ -75,7 +75,7 @@ class oasa_not_implemented_error( oasa_error):
     self.what = what
 
   def __str__( self):
-    return "'Not implemented' error in %s: %s" % (self.where, self.what)
+    return f"'Not implemented' error in {self.where}: {self.what}"
 
 
 class oasa_inchi_error( oasa_error):

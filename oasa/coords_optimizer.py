@@ -18,9 +18,11 @@
 #--------------------------------------------------------------------------
 
 from __future__ import division
+from __future__ import absolute_import
+from __future__ import print_function
 from math import pi, sqrt, sin, cos, atan2
-import geometry
-import misc
+from . import geometry
+from . import misc
 
 import warnings
 #import graph
@@ -37,7 +39,7 @@ def gen_variations(items, n):
     if n==0:
       yield []
     else:
-      for i in xrange( len(items)-n+1):
+      for i in range( len(items)-n+1):
         for v in gen_variations(items[i+1:],n-1):
           yield [items[i]]+v
 
@@ -206,7 +208,7 @@ class coords_optimizer:
     dang2 = (ang - opt_angle) / 2
 
     if abs( dang2) > abs( dang):
-      print "fuck", rad_to_deg( ang1), rad_to_deg( ang2), rad_to_deg( dang)
+      print("fuck", rad_to_deg( ang1), rad_to_deg( ang2), rad_to_deg( dang))
     else:
       #rint "good", rad_to_deg( ang1), rad_to_deg( ang2), rad_to_deg( dang)
       pass
@@ -218,23 +220,23 @@ class coords_optimizer:
 
 if __name__ == "__main__":
 
-  import smiles
+  from . import smiles
   import time
 
   mol = smiles.text_to_mol( 'CC(C)C(C)CCCC')
 
-  print [(v.x,v.y) for v in mol.vertices]
+  print([(v.x,v.y) for v in mol.vertices])
 
   opt = coords_optimizer()
   t = time.time()
   ok = opt.optimize_coords( mol, bond_length=0.9)
-  print "converged:", ok
-  print "%d iterations, RMS grad %f, max grad %f" % (opt.i, opt.rms_grad, opt.max_grad)
-  print "time %.1f ms" % ((time.time() - t) * 1000)
+  print("converged:", ok)
+  print("%d iterations, RMS grad %f, max grad %f" % (opt.i, opt.rms_grad, opt.max_grad))
+  print("time %.1f ms" % ((time.time() - t) * 1000))
 
 
-  print [(v.x,v.y) for v in mol.vertices]
+  print([(v.x,v.y) for v in mol.vertices])
 
-  import coords_generator
+  from . import coords_generator
 
   coords_generator.show_mol( mol)

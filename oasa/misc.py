@@ -24,6 +24,7 @@
 """module containing miscelanous functions used in BKchem that don't
 fit anywhere else. Does not contain any objects"""
 
+from __future__ import absolute_import
 import math
 import time
 import string
@@ -101,7 +102,7 @@ def split_number_and_unit( txt):
     return v, ''
   except:
     pass
-  cutter = re.compile( "([+-]?\d*\.?\d*)\s*([a-zA-Z]*)")
+  cutter = re.compile( r"([+-]?\d*\.?\d*)\s*([a-zA-Z]*)")
   if txt:
     a = cutter.match( txt)
     if a and a.group(1):
@@ -111,7 +112,7 @@ def split_number_and_unit( txt):
 
 def lazy_apply( function, arguments):
   """similar to apply but returns a callable (lambda) that performs the apply when called."""
-  return lambda: apply( function, arguments)
+  return lambda: function(*arguments)
 
 
 
@@ -177,11 +178,11 @@ def reverse( iterable):
 
 # some helper, higher order functions
 
-map_functions = lambda funcs, value: zip( apply, funcs, len(funcs)*[value])
+map_functions = lambda funcs, value: list(zip( apply, funcs, len(funcs)*[value]))
 
-something_true = lambda vals: len( filter( None, vals))
+something_true = lambda vals: len( [_f for _f in vals if _f])
 
-some_apply = lambda func, vals: something_true( map( func, vals))
+some_apply = lambda func, vals: something_true( list(map( func, vals)))
 
 
 
@@ -196,7 +197,7 @@ def gen_variations(items, n):
   if n==0:
     yield []
   else:
-    for i in xrange( len(items)-n+1):
+    for i in range( len(items)-n+1):
       for v in gen_variations(items[i+1:],n-1):
         yield [items[i]]+v
 
@@ -205,7 +206,7 @@ def gen_combinations( items, n):
   if n==0:
     yield []
   else:
-    for i in xrange( len( items)):
+    for i in range( len( items)):
       for v in gen_combinations( [x for x in items if x!=items[i]], n-1):
         yield [items[i]]+v
 

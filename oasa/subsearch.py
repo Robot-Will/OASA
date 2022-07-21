@@ -17,12 +17,14 @@
 
 #--------------------------------------------------------------------------
 
-import smiles
-from graph.digraph import digraph
+from __future__ import absolute_import
+from __future__ import print_function
+from . import smiles
+from .graph.digraph import digraph
 
 import os
 
-class substructure_search_manager( object):
+class substructure_search_manager:
 
   substructure_def_file = os.path.join( os.path.dirname( __file__), "subsearch_data.txt")
   ring_def_file = os.path.join( os.path.dirname( __file__), "subsearch_rings.txt")
@@ -34,7 +36,7 @@ class substructure_search_manager( object):
     self.fill_data()
 
   def fill_data( self):
-    import subsearch_data
+    from . import subsearch_data
     for struct in subsearch_data.structures:
       compound_type, name, smiles_string, to_ignore = struct
       sub = substructure( name, compound_type, smiles=smiles_string, atoms_to_ignore=to_ignore)
@@ -52,19 +54,19 @@ class substructure_search_manager( object):
   def _read_structure_file( self, name=""):
     """may be used to read data directly from source txt files.
     is deprecated in favor of automatically build subsearch_data.py module"""
-    f = file( name or self.substructure_def_file, "r")
+    f = open( name or self.substructure_def_file)
     for line in f:
       l = line.strip()
       if l and not l.startswith( "#"):
         parts = l.split(";")
         if len( parts) < 3:
           raise ValueError( "wrong line in data file: '%s'" % l)
-        compound_type, name, smiles_string = [x.strip() for x in parts[:3]]
+        compound_type, name, smiles_string = (x.strip() for x in parts[:3])
         if len( parts) > 3:
           to_ignore = parts[3].strip()
         else:
           to_ignore = ""
-        to_ignore = map( int, filter( None, to_ignore.split(",")))
+        to_ignore = list(map( int, [_f for _f in to_ignore.split(",") if _f]))
         if not name.strip():
           name = compound_type
         sub = substructure( name, compound_type, smiles=smiles_string, atoms_to_ignore=to_ignore)
@@ -76,7 +78,7 @@ class substructure_search_manager( object):
   def _read_ring_file( self, name=""):
     """may be used to read data directly from source txt files.
     is deprecated in favor of automatically build subsearch_data.py module"""
-    f = file( name or self.ring_def_file, "r")
+    f = open( name or self.ring_def_file)
     for line in f:
       l = line.strip()
       if l and not l.startswith( "#"):
@@ -225,9 +227,9 @@ class substructure_search_manager( object):
 
   @classmethod
   def _data_files_to_python_module( self, structure_file=None, ring_file=None):
-    out = file( "subsearch_data.py", "w")
-    f = file( structure_file or self.substructure_def_file, "r")
-    print >> out, """#--------------------------------------------------------------------------
+    out = open( "subsearch_data.py", "w")
+    f = open( structure_file or self.substructure_def_file)
+    print("""#--------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
 
@@ -246,37 +248,37 @@ class substructure_search_manager( object):
 
 #--------------------------------------------------------------------------
 
-"""
-    print >> out, "## automatically generated file - may be overwritten at any time"
-    print >> out, "structures = ["
+""", file=out)
+    print("## automatically generated file - may be overwritten at any time", file=out)
+    print("structures = [", file=out)
     for line in f:
       l = line.strip()
       if l and not l.startswith( "#"):
         parts = [x.strip() for x in l.split(";")]
         if len( parts) < 3:
-          print >> sys.stderr, "Invalid line in src file:", line[:-1]
+          print("Invalid line in src file:", line[:-1], file=sys.stderr)
         elif len( parts) == 3:
           parts.append( "")
-        to_ignore = map( int, filter( None, parts[3].split(",")))
+        to_ignore = list(map( int, [_f for _f in parts[3].split(",") if _f]))
         parts[3] = to_ignore
         if not parts[1]:
           parts[1] = parts[0]
-        print >> out, tuple(parts), ","
-    print >> out, "]"
+        print(tuple(parts), ",", file=out)
+    print("]", file=out)
     f.close()
-    f = file( ring_file or self.ring_def_file, "r")
-    print >> out, "rings = ["
+    f = open( ring_file or self.ring_def_file)
+    print("rings = [", file=out)
     for line in f:
       l = line.strip()
       if l and not l.startswith( "#"):
         parts = [x.strip() for x in l.split(";")]
-        print >> out, tuple(parts), ","
-    print >> out, "]"
+        print(tuple(parts), ",", file=out)
+    print("]", file=out)
     f.close()
     out.close()
 
 
-class substructure( object):
+class substructure:
 
   def __init__( self, name, compound_type, smiles="", atoms_to_ignore=None):
     self.name = name
@@ -287,7 +289,7 @@ class substructure( object):
     self.children = []
 
   def __str__( self):
-    return "<Substructure: %s: %s>" % (self.name, self.smiles_string)
+    return f"<Substructure: {self.name}: {self.smiles_string}>"
 
   def read_smiles( self, smiles_string, atoms_to_ignore=None):
     self.smiles_string = smiles_string.strip()
@@ -308,7 +310,7 @@ class substructure( object):
     return ret
 
 
-class ring( object):
+class ring:
 
   def __init__( self, name, smiles, ring_hash=None):
     self.name = name
@@ -320,10 +322,10 @@ class ring( object):
       self.ring_hash = None # read smiles and generate hash here?
 
   def __str__( self):
-    return "<Ring: %s: %s>" % (self.name, self.smiles_string)
+    return f"<Ring: {self.name}: {self.smiles_string}>"
 
 
-class substructure_match( object):
+class substructure_match:
 
   def __init__( self, atoms_found, atoms_searched, substruct):
     """atoms_found are atoms in the molecule we searched in,
@@ -347,7 +349,7 @@ class substructure_match( object):
     return ret
 
 
-class ring_match( object):
+class ring_match:
 
   def __init__( self, atoms_found, ring_obj):
     self.substructure = ring_obj
@@ -370,21 +372,21 @@ if __name__ == "__main__":
   #ssm._read_structure_file()
   #ssm._read_ring_file()
   
-  print "Read_structure_file: %.1fms" % (1000*(time.time() - t))
+  print("Read_structure_file: %.1fms" % (1000*(time.time() - t)))
   t = time.time()
   
-  print ssm.structures
+  print(ssm.structures)
   #print ssm.structures.is_connected()
   dump = ssm.structures.get_graphviz_text_dump()
-  f = file( "dump.dot", "w")
+  f = open( "dump.dot", "w")
   f.write( dump)
   f.close()
 
-  print "Graphviz dump: %.1fms" % (1000*(time.time() - t))
+  print("Graphviz dump: %.1fms" % (1000*(time.time() - t)))
   t = time.time()
 
   def print_tree( x, l):
-    print l*" ", x #, x.children
+    print(l*" ", x) #, x.children
     for ch in x.children:
       print_tree( ch, l+2)
   
@@ -401,7 +403,7 @@ if __name__ == "__main__":
 
   subs = ssm.find_substructures_in_mol( mol)
   for sub in subs:
-    print sub
+    print(sub)
 
-  print "Substructure search: %.1fms" % (1000*(time.time() - t))
+  print("Substructure search: %.1fms" % (1000*(time.time() - t)))
   t = time.time()

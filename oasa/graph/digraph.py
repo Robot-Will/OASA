@@ -22,12 +22,15 @@
 graph implementation suitable for analysis of chemical problems"""
 
 
-from diedge import diedge
-from vertex import vertex
+from __future__ import absolute_import
+from __future__ import print_function
+from .diedge import diedge
+from .vertex import vertex
 import warnings
 import copy
 import operator
-import graph
+from . import graph
+from functools import reduce
 
 
 
@@ -78,10 +81,10 @@ class digraph( graph.graph):
         end = [x for x in self.vertices if 'd' in x.properties_ and x.properties_['d'] == dist][0]
         best_path = self.get_random_longest_path_numbered( v, end)
 
-    print "path"
+    print("path")
     best_path.reverse()
     for v in best_path:
-      print v
+      print(v)
     return diameter
 
 
@@ -106,7 +109,7 @@ class digraph( graph.graph):
       if not recent:
         if comp:
           yield comp
-        recent = set( [not_processed.pop()])
+        recent = { not_processed.pop()}
         comp = recent
       else:
         comp |= recent
@@ -142,7 +145,7 @@ class digraph( graph.graph):
     '''
     for v in self.vertices:
       for n in v.neighbors:
-        ret += '"%s" -> "%s";\n' % (v,n);
-      ret += '"%s" [label="%s"];\n' % (v,v.value)
+        ret += f'"{v}" -> "{n}";\n';
+      ret += f'"{v}" [label="{v.value}"];\n'
     ret += "}"
     return ret

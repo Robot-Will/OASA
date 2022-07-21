@@ -21,8 +21,9 @@
 """support module for some geometric mesurements ( geometric tramforms are in transform.py)"""
 
 from __future__ import division
+from __future__ import absolute_import
 from math import sqrt, atan2, pi, cos, sin
-from misc import signum, normalize_coords
+from .misc import signum, normalize_coords
 import operator
 
 
@@ -136,8 +137,8 @@ def clockwise_angle_from_east( dx, dy):
 def intersection_of_line_and_rect( line, rect, round_edges=0):
   """finds a point where a line and a rectangle intersect,
   both are given as lists of len == 4"""
-  lx0, ly0, lx1, ly1 = map( float, line)
-  rx0, ry0, rx1, ry1 = map( float, normalize_coords( rect))
+  lx0, ly0, lx1, ly1 = list(map( float, line))
+  rx0, ry0, rx1, ry1 = list(map( float, normalize_coords( rect)))
 
   # find which end of line is in the rect and reverse the line if needed
   if (lx0 > rx0) and (lx0 < rx1) and (ly0 > ry0) and (ly0 < ry1):
@@ -195,7 +196,8 @@ def point_distance( x1, y1, x2, y2):
   return sqrt( (x2-x1)**2 + (y2-y1)**2)
 
 
-def line_length( (x1,y1,x2,y2)):
+def line_length(xxx_todo_changeme):
+  (x1,y1,x2,y2) = xxx_todo_changeme
   return point_distance( x1, y1, x2, y2)
 
 
@@ -462,7 +464,7 @@ def plane_normal_from_3_points( point1, point2, point3):
   for point in (point1,point2,point3):
     if None in point:
       return None  # some coords are missing
-  import transform
+  from . import transform
   x1,y1,z1 = point1
   x2,y2,z2 = point2
   x3,y3,z3 = point3
@@ -508,7 +510,7 @@ def create_transformation_to_coincide_point_with_z_axis( mov, point):
   with positive 'z'.
   NOTE: this is probably far from efficient, but it works
   """
-  from transform3d import transform3d
+  from .transform3d import transform3d
   t = transform3d()
   a,b,c = mov
   t.set_move( -a, -b, -c)
@@ -560,7 +562,7 @@ def create_transformation_to_rotate_around_particular_axis( line_start, line_end
   m33 = (w2 + (u2 + v2) * cosT)/l2;
   m34 = (c*(u2 + v2) - w*(a*u + b*v) 
       + (w*(a*u + b*v) - c*(u2 + v2))*cosT + (a*v - b*u)*l*sinT)/l2;
-  from transform3d import transform3d
+  from .transform3d import transform3d
   t = transform3d( [[m11,m12,m13,m14],[m21,m22,m23,m24],[m31,m32,m33,m34],[0,0,0,1]])
   return t
 

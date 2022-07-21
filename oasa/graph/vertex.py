@@ -21,10 +21,12 @@
 
 #import basic
 
+from __future__ import absolute_import
 import copy
+import six
 
 
-class vertex( object):
+class vertex:
   """simple vertex class, normaly would not be needed but it can speed up many analytical tasks
   to store data directly in vertex and not get them from the graph connectivity matrix.
   vertex has a value attribute used to store arbitrary object"""
@@ -36,8 +38,8 @@ class vertex( object):
     self.value = None  # used to store any object associated with the vertex
     self._neighbors = {} # set of all neighbors
     self._clean_cache()
-    
-    
+
+
   def __str__( self):
     return ("vertex, value=%s, degree=%d, " % (str( self.value), self.get_degree()) )+str(self.properties_)
 
@@ -49,7 +51,7 @@ class vertex( object):
     for attr in self.attrs_to_copy:
       setattr( other, attr, copy.copy( getattr( self, attr)))
     return other
-  
+
   def add_neighbor( self, v, e):
     """adds a neighbor connected via e"""
     self._clean_cache()
@@ -58,7 +60,7 @@ class vertex( object):
   def remove_neighbor( self, v):
     self._clean_cache()
     to_del = None
-    for k, vv in self._neighbors.iteritems():
+    for k, vv in self._neighbors.items():
       if v == vv:
         to_del = k
         break
@@ -69,14 +71,14 @@ class vertex( object):
 
   def remove_edge_and_neighbor( self, e):
     self._clean_cache()
-    if e in self._neighbors.keys():
+    if e in list(self._neighbors.keys()):
       del self._neighbors[ e]
     else:
-      raise "cannot remove non-existing edge", e
+      raise RuntimeError("cannot remove non-existing edge", e)
 
 
   def get_neighbors( self):
-    return [v for (e,v) in self._neighbors.iteritems() if not e.disconnected]
+    return [v for (e,v) in self._neighbors.items() if not e.disconnected]
     #for i in self._neighbors.itervalues():
     #  yield i
 
@@ -85,7 +87,7 @@ class vertex( object):
     return self._neighbors[ e]
 
   def get_edge_leading_to( self, a):
-    for b, at in self._neighbors.iteritems():
+    for b, at in self._neighbors.items():
       if a == at:
         return b
     return None
@@ -103,7 +105,7 @@ class vertex( object):
 
 
   def get_neighbor_edge_pairs( self):
-    for e,v in self._neighbors.iteritems():
+    for e,v in self._neighbors.items():
       if not e.disconnected:
         yield e,v
 
@@ -117,4 +119,4 @@ class vertex( object):
   neighbors = property( get_neighbors, None, None, "the neighboring vertices")
   neighbor_edges = property( get_neighbor_edges, None, None, "the neighboring edges")
   degree = property( get_degree, None, None, "the degree of the vertex")
-  
+
