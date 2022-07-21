@@ -120,15 +120,8 @@ else:
     all.append("structure_database")
     STRUCTURE_DATABASE_AVAILABLE = True
 
-# pybel
-try:
-    from . import pybel_bridge
-except Exception as e:
-    # print >> sys.stderr, "The 'pybel_bridge' python module could not be loaded - oasa-pybel integration will be disabled\nSee the error message for more info:\n  %s" % e
-    PYBEL_AVAILABLE = False
-else:
-    all.append("pybel_bridge")
-    PYBEL_AVAILABLE = True
+# pybel deprecated
+PYBEL_AVAILABLE = False
 
 
 __all__ = all
