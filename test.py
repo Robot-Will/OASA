@@ -2,7 +2,7 @@ from __future__ import absolute_import
 from __future__ import print_function
 import oasa
 
-# print oasa.CAIRO_AVAILABLE
+print(oasa.CAIRO_AVAILABLE)
 
 
 def cairo_out_test2():
@@ -20,8 +20,12 @@ def cairo_out_test2():
 
 def inchi_test():
     mol = oasa.smiles.text_to_mol(r"c1ccccc1\C=C/CC")
-    print(oasa.inchi.mol_to_text(mol, program="stdinchi-1.exe", fixed_hs=False))
+    print(
+        oasa.inchi.mol_to_text(
+            mol, program=r"C:\Users\dario\.local\bin\inchi-1.exe", fixed_hs=False
+        )
+    )
 
 
 cairo_out_test2()
-# inchi_test()
+inchi_test()

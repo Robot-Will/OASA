@@ -773,9 +773,13 @@ import subprocess
 
 def _run_command(command, input):
     p = subprocess.Popen(
-        command, stdin=subprocess.PIPE, stdout=subprocess.PIPE, stderr=subprocess.STDOUT
+        command,
+        stdin=subprocess.PIPE,
+        stdout=subprocess.PIPE,
+        stderr=subprocess.STDOUT,
+        shell=True,
     )
-    o, er = p.communicate(str(input))
+    o, er = p.communicate(input.encode("utf-8"))
     return o
 
 
@@ -794,20 +798,20 @@ def generate_inchi_and_inchikey(m, program=None, fixed_hs=True, ignore_key_error
     # print options
     command = [os.path.abspath(program)] + options.split()
     text = _run_command(command, mf)
-    inchi = ""
+    inchi = b""
     key = ""
     warnings = []
     for line in text.splitlines():
-        if line.startswith("Warning"):
-            warnings.append(line.strip() + "\n")
-        elif line.startswith("End of file detected"):
+        if line.startswith(b"Warning"):
+            warnings.append(line.strip() + b"\n")
+        elif line.startswith(b"End of file detected"):
             pass
-        elif line.startswith("InChIKey="):
+        elif line.startswith(b"InChIKey="):
             key = line.strip()[9:]
             break
-        elif line.startswith("InChI="):
-            inchi = inchi + line.strip()
-        elif line.startswith("Error"):
+        elif line.startswith(b"InChI="):
+            inchi += line.strip()
+        elif line.startswith(b"Error"):
             break
     if not inchi:
         raise oasa_inchi_error("InChI program did not create any output InChI")

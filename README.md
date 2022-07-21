@@ -27,14 +27,15 @@ This is an example of PNG export:
 
 
 ### STATUS
-bellow are summarized the limitations of the library. it does by no means mean that there are no other limitations, however, for these it has no sense to write bugreports :)
+below are summarized the limitations of the library.
+It does not mean that there are no other limitations, however, for these it has no sense to write bugreports :)
 
 
 ##### OVERALL:
 - no documentation beyond the source code is available
 - stereochemistry support is limited to cis/trans stereochemistry on double bonds
   and only in some formats
-- not much effort was invested into optimalization of the code, it may be pretty slow sometimes
+- not much effort was invested into optimization of the code, it may be pretty slow sometimes
 - the API might be unstable
 
 
@@ -60,4 +61,6 @@ bellow are summarized the limitations of the library. it does by no means mean t
 
 ##### CAIRO_OUT:
 - pycairo is required to make use of cairo_out functionality
+- *NOTE* currently the pypi builds of pycairo are brokwn on windows, use whl from
+https://www.lfd.uci.edu/~gohlke/pythonlibs/#pycairo instad
 - PNG, PDF and SVG export is supported now
