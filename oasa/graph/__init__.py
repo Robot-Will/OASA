@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
 
@@ -15,7 +15,7 @@
 #     Complete text of GNU GPL can be found in the file gpl.txt in the
 #     main directory of the program
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 from __future__ import absolute_import
 from . import graph
@@ -27,4 +27,3 @@ graph = graph.graph
 vertex = vertex.vertex
 edge = edge.edge
 digraph = digraph.digraph
-

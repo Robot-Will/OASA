@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
 
@@ -15,28 +15,27 @@
 #     Complete text of GNU GPL can be found in the file gpl.txt in the
 #     main directory of the program
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 
 class plugin:
-  """the basic plugin interface"""
+    """the basic plugin interface"""
 
-  name = "plugin"
-  read = 0
-  write = 0
+    name = "plugin"
+    read = 0
+    write = 0
 
-  def __init__( self):
-    pass
+    def __init__(self):
+        pass
 
-  def set_structure( self, structure):
-    pass
+    def set_structure(self, structure):
+        pass
 
-  def get_structure( self, structure):
-    pass
+    def get_structure(self, structure):
+        pass
 
-  def read_file( self, file):
-    pass
+    def read_file(self, file):
+        pass
 
-  def write_file( self, file):
-    pass
-
+    def write_file(self, file):
+        pass

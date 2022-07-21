@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
 
@@ -15,47 +15,45 @@
 #     Complete text of GNU GPL can be found in the file gpl.txt in the
 #     main directory of the program
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 from __future__ import absolute_import
 from .molecule import molecule
 
 
 class reaction:
-  """Reaction representation"""
+    """Reaction representation"""
 
-
-  def __init__( self, reactants=None, products=None, reagents=None):
-    self.reactants = reactants or []
-    self.products = products or []
-    self.reagents = reagents or []
-
+    def __init__(self, reactants=None, products=None, reagents=None):
+        self.reactants = reactants or []
+        self.products = products or []
+        self.reagents = reagents or []
 
 
 class reaction_component:
-  """Represents one component of a reaction"""
+    """Represents one component of a reaction"""
 
-  def __init__( self, mol=None, stoichiometry=1):
-    self.stoichiometry = stoichiometry
-    self.molecule = mol
+    def __init__(self, mol=None, stoichiometry=1):
+        self.stoichiometry = stoichiometry
+        self.molecule = mol
 
-  def _set_molecule( self, mol):
-    assert isinstance( mol, molecule)
-    self._molecule = mol
+    def _set_molecule(self, mol):
+        assert isinstance(mol, molecule)
+        self._molecule = mol
 
-  def _get_molecule( self):
-    return self._molecule
+    def _get_molecule(self):
+        return self._molecule
 
-  molecule = property( _get_molecule, _set_molecule)
+    molecule = property(_get_molecule, _set_molecule)
 
-  def _set_stoichiometry( self, stoich):
-    assert type( stoich) in (int, float)
-    self._stoichiometry = stoich
+    def _set_stoichiometry(self, stoich):
+        assert type(stoich) in (int, float)
+        self._stoichiometry = stoich
 
-  def _get_stoichiometry( self):
-    return self._stoichiometry
+    def _get_stoichiometry(self):
+        return self._stoichiometry
 
-  stoichiometry = property( _get_stoichiometry, _set_stoichiometry)
+    stoichiometry = property(_get_stoichiometry, _set_stoichiometry)
 
-  def __str__( self):
-    return f"{self.stoichiometry} * ({self.molecule})"
+    def __str__(self):
+        return f"{self.stoichiometry} * ({self.molecule})"

@@ -1,4 +1,4 @@
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
 
@@ -15,7 +15,7 @@
 #     Complete text of GNU GPL can be found in the file gpl.txt in the
 #     main directory of the program
 
-#--------------------------------------------------------------------------
+# --------------------------------------------------------------------------
 
 from __future__ import absolute_import
 from __future__ import print_function
@@ -25,73 +25,77 @@ from . import inchi as inchimod
 from . import inchi_key
 
 
-
 class Config:
-    database_file = os.path.abspath( os.path.join( os.path.dirname( __file__), "names.db"))
+    database_file = os.path.abspath(os.path.join(os.path.dirname(__file__), "names.db"))
 
 
-def normalize_inchi( inchi):
+def normalize_inchi(inchi):
     if inchi.startswith("InChI="):
         return inchi[6:]
     else:
         return inchi
-    
 
-def compound_to_database_string( c):
-    c['inchi'] = normalize_inchi( c['inchi'])
-    c['inchikey'] = inchi_key.key_from_inchi( c['inchi'])
+
+def compound_to_database_string(c):
+    c["inchi"] = normalize_inchi(c["inchi"])
+    c["inchikey"] = inchi_key.key_from_inchi(c["inchi"])
     return "%(inchikey)s %(cid)s ### %(name)s\n" % c
 
 
-def database_string_to_compound( line):
-    a,name = line.split( "###")
+def database_string_to_compound(line):
+    a, name = line.split("###")
     inchi, cid = a.split()
-    inchikey = inchi_key.key_from_inchi( inchi)
-    return {'inchikey':inchikey.strip(), 'cid':cid.strip(), 'name':name.strip()}
-    
+    inchikey = inchi_key.key_from_inchi(inchi)
+    return {"inchikey": inchikey.strip(), "cid": cid.strip(), "name": name.strip()}
 
-def mydb_to_gdbm( infilename, outfilename):
+
+def mydb_to_gdbm(infilename, outfilename):
     import six.moves.dbm_gnu
-    infile = open( infilename)
-    base = six.moves.dbm_gnu.open( outfilename, "n")
-    for line in infile:
-        rec = database_string_to_compound( line)
-        base[ rec['inchikey']] = rec['cid'] + " " + rec['name']
-        
-    
 
-def get_compound_from_database( inchikey, database_file=None):
-    #inchi = normalize_inchi( inchi)
+    infile = open(infilename)
+    base = six.moves.dbm_gnu.open(outfilename, "n")
+    for line in infile:
+        rec = database_string_to_compound(line)
+        base[rec["inchikey"]] = rec["cid"] + " " + rec["name"]
+
+
+def get_compound_from_database(inchikey, database_file=None):
+    # inchi = normalize_inchi( inchi)
     for fname in (database_file, Config.database_file):
         if fname and os.path.exists(fname):
             break
     else:
         raise Exception("Name database not found")
-    base = anydbm.open( fname)
+    base = anydbm.open(fname)
     if inchikey in base:
-        cid, name = base[ inchikey].split( " ", 1)
-        return {'inchikey': inchikey, 'cid': cid, 'name': name}
+        cid, name = base[inchikey].split(" ", 1)
+        return {"inchikey": inchikey, "cid": cid, "name": name}
     else:
         return None
 
 
-def name_molecule( mol, database_file=None):
+def name_molecule(mol, database_file=None):
     """tries to find name for an OASA molecule in the database,
     it requires InChI generation to work"""
-    key = inchimod.generate_inchi_key( mol)
-    return get_compound_from_database( key, database_file=database_file)
+    key = inchimod.generate_inchi_key(mol)
+    return get_compound_from_database(key, database_file=database_file)
 
 
 if __name__ == "__main__":
     import sys
-    if len( sys.argv) > 1:
+
+    if len(sys.argv) > 1:
         fname = sys.argv[1]
-        if os.path.exists( fname):
+        if os.path.exists(fname):
             try:
-                mydb_to_gdbm( fname, Config.database_file)
+                mydb_to_gdbm(fname, Config.database_file)
             except:
-                print("given file must be a text file with one compound per line in format 'InChI CID ### name'")
+                print(
+                    "given file must be a text file with one compound per line in format 'InChI CID ### name'"
+                )
         else:
-            print("you must supply a valid filename to update the database or no argument for a test to run")
+            print(
+                "you must supply a valid filename to update the database or no argument for a test to run"
+            )
     else:
-        print(get_compound_from_database( "IJDNQMDRQITEOD-UHFFFAOYSA-N"))
+        print(get_compound_from_database("IJDNQMDRQITEOD-UHFFFAOYSA-N"))

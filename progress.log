@@ -8,7 +8,7 @@ RELEASE - OASA 0.13.1
 	 - __init__ - make name_database import conditional
 
  * enhancements - molfile - parse charge information from property line in molfiles
-      
+
  * acknowledgments - thanks to István Vágó for several useful bug reports
 
 
@@ -41,7 +41,7 @@ RELEASE - OASA 0.12.6
 		- molfile - SDFiles are now supported using a new class based interface
 		  	    and generators for file reading
  * fixes - pybel_bridge - charge is properly copied between OASA and pybel
-			    
+
 
 RELEASE - OASA 0.12.5
 ----------------------------------------
@@ -77,7 +77,7 @@ RELEASE - OASA 0.12.1
    		  	      about centering of a double bond
 
  * acknowledgments - Noel O'Boyle - for merciless bug hunting
- 
+
 
 RELEASE - OASA 0.12.0
 ----------------------------------------
