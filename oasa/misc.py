@@ -1,41 +1,12 @@
-# --------------------------------------------------------------------------
-#     This file is part of BKchem - a chemical drawing program
-#     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version.
-
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
-#     Complete text of GNU GPL can be found in the file gpl.txt in the
-#     main directory of the program
-
-# --------------------------------------------------------------------------
-#
-#
-#
-# --------------------------------------------------------------------------
-
-"""module containing miscelanous functions used in BKchem that don't
-fit anywhere else. Does not contain any objects"""
-
-from __future__ import absolute_import
-import math
-import time
-import string
-from warnings import warn
+"""
+module containing miscellaneous functions used in BKchem that don't fit anywhere else.
+Does not contain any objects"""
 import re
-import types
-import base64
+from math import factorial
 
 
 def intersection(a, b):
-    "returns intersection of 2 lists"
+    """returns intersection of 2 lists"""
     ret = []
     for i in a:
         if i in b:
@@ -44,7 +15,7 @@ def intersection(a, b):
 
 
 def difference(a, b):
-    "returns difference of 2 lists ( a-b)"
+    """returns difference of 2 lists ( a-b)"""
     ret = list(a)  # needed for type conversion of tuple for instance
     for i in b:
         if i in ret:
@@ -170,7 +141,6 @@ def reverse(iterable):
 
 
 # some helper, higher order functions
-
 map_functions = lambda funcs, value: list(zip(apply, funcs, len(funcs) * [value]))
 
 something_true = lambda vals: len([_f for _f in vals if _f])
@@ -207,19 +177,8 @@ def x_over_y(x, y):
     return factorial(x) / factorial(y) / factorial(x - y)
 
 
-def factorial(x):
-    ret = 1
-    for i in range(2, x + 1):
-        ret *= i
-    return ret
-
-
 def gen_variations_and_one(items, length):
     for i in items:
         vars = gen_variations([x for x in items if x != i], length - 1)
         for vs in vars:
             yield vs + [i]
-
-
-# print x_over_y( 11, 7)
-# print len( list( gen_variations( [1,2,3,4,5,6,7,8,9,10,11,12], 8)))

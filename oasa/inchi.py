@@ -1,47 +1,23 @@
-# --------------------------------------------------------------------------
-#     This file is part of OASA - a free chemical python library
-#     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version.
-
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
-#     Complete text of GNU GPL can be found in the file gpl.txt in the
-#     main directory of the program
-
-# --------------------------------------------------------------------------
-
-from __future__ import absolute_import
-from __future__ import print_function
-from .plugin import plugin
-from .molecule import molecule
-from . import periodic_table as pt
-from . import molfile
-from . import misc
-
+import os
 import re
-
-import operator
+import string
 import time
 import xml.dom.minidom as dom
-from . import dom_extensions
-import string
-import os
-from . import coords_generator
-from .oasa_exceptions import (
-    oasa_not_implemented_error,
-    oasa_inchi_error,
-    oasa_unsupported_inchi_version_error,
-)
-import select
-import sys
-from .stereochemistry import cis_trans_stereochemistry
+
+from oasa import coords_generator
+from oasa import dom_extensions
+from oasa import misc
+from oasa import molfile
+from oasa import periodic_table as pt
+from oasa.config import Config
+from oasa.molecule import molecule
+from oasa.oasa_exceptions import oasa_inchi_error
+from oasa.oasa_exceptions import oasa_not_implemented_error
+from oasa.oasa_exceptions import oasa_unsupported_inchi_version_error
+from oasa.plugin import plugin
+from oasa.stereochemistry import cis_trans_stereochemistry
+
+INCHI_EXE = Config.inchi_binary_path
 
 
 class inchi(plugin):
@@ -400,7 +376,7 @@ class inchi(plugin):
                     break
 
         if charge:
-            raise oasa_exceptions.oasa_inchi_error(
+            raise oasa_inchi_error(
                 "The molecular charge could not be allocated to any atom (%d)." % charge
             )
 
@@ -832,6 +808,7 @@ def generate_inchi_and_inchikey(m, program=None, fixed_hs=True, ignore_key_error
 
 
 def generate_inchi(m, program=None, fixed_hs=True):
+    print(program)
     inchi, key, warnings = generate_inchi_and_inchikey(
         m, program=program, fixed_hs=fixed_hs, ignore_key_error=True
     )
@@ -879,8 +856,8 @@ def file_to_mol(f):
     return text_to_mol(f.read())
 
 
-def mol_to_text(mol, program=None, fixed_hs=True):
-    return generate_inchi(mol, program=program, fixed_hs=fixed_hs)[0]
+def mol_to_text(mol, program=None, fixed_hs=True) -> str:
+    return generate_inchi(mol, program=program, fixed_hs=fixed_hs)[0].decode("utf-8")
 
 
 def mol_to_file(mol, f):
@@ -896,7 +873,7 @@ def mol_to_file(mol, f):
 
 if __name__ == "__main__":
 
-    from . import smiles
+    from oasa import smiles
 
     def main(text, cycles):
         t1 = time.time()
@@ -906,17 +883,11 @@ if __name__ == "__main__":
             print("  smiles: ", smiles.mol_to_text(mol))
             print(
                 "  inchi:  ",
-                generate_inchi(
-                    mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1"
-                ),
+                generate_inchi(mol, fixed_hs=False, program=INCHI_EXE),
             )
             print("  charge: ", sum(a.charge for a in mol.vertices))
             print("  mw:     ", mol.weight)
-        print(
-            generate_inchi_and_inchikey(
-                mol, fixed_hs=False, program="/home/beda/bin/stdinchi-1"
-            )
-        )
+        print(generate_inchi_and_inchikey(mol, fixed_hs=False, program=INCHI_EXE))
         t1 = time.time() - t1
         print("time per cycle", round(1000 * t1 / cycles, 2), "ms")
 

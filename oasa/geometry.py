@@ -1,30 +1,30 @@
 # --------------------------------------------------------------------------
 #     This file is part of OASA - a free chemical python library
 #     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
 #     This program is free software; you can redistribute it and/or modify
 #     it under the terms of the GNU General Public License as published by
 #     the Free Software Foundation; either version 2 of the License, or
 #     (at your option) any later version.
-
 #     This program is distributed in the hope that it will be useful,
 #     but WITHOUT ANY WARRANTY; without even the implied warranty of
 #     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
 #     GNU General Public License for more details.
-
 #     Complete text of GNU GPL can be found in the file gpl.txt in the
 #     main directory of the program
-
 # --------------------------------------------------------------------------
-
-
 """support module for some geometric mesurements ( geometric tramforms are in transform.py)"""
-
-from __future__ import division
 from __future__ import absolute_import
-from math import sqrt, atan2, pi, cos, sin
-from .misc import signum, normalize_coords
+from __future__ import division
+
 import operator
+from math import atan2
+from math import cos
+from math import pi
+from math import sin
+from math import sqrt
+
+from .misc import normalize_coords
+from .misc import signum
 
 
 def find_parallel(x1, y1, x2, y2, d):
@@ -450,7 +450,7 @@ def find_parallel_polyline(coords, d):
 
 
 def point_on_quadratic_bezier(coords, t):
-    """based on info from http://en.wikipedia.org/wiki/B%C3%A9zier_curve"""
+    """based on info from https://en.wikipedia.org/wiki/B%C3%A9zier_curve"""
     (x0, y0, x1, y1, x2, y2) = coords
     x = (1 - t) ** 2 * x0 + 2 * t * (1 - t) * x1 + t**2 * x2
     y = (1 - t) ** 2 * y0 + 2 * t * (1 - t) * y1 + t**2 * y2
@@ -553,7 +553,7 @@ def create_transformation_to_coincide_point_with_z_axis(mov, point):
 
 def create_transformation_to_rotate_around_particular_axis(line_start, line_end, theta):
     """
-    taken from http://inside.mines.edu/~gmurray/ArbitraryAxisRotation/ArbitraryAxisRotation.html
+    taken from https://inside.mines.edu/~gmurray/ArbitraryAxisRotation/ArbitraryAxisRotation.html
     """
     a, b, c = line_start
     u, v, w = line_end

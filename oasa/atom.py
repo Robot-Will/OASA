@@ -1,36 +1,10 @@
-# --------------------------------------------------------------------------
-#     This file is part of OASA - a free chemical python library
-#     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version.
-
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
-#     Complete text of GNU GPL can be found in the file gpl.txt in the
-#     main directory of the program
-
-# --------------------------------------------------------------------------
-
-from __future__ import absolute_import
-import sys
-
-sys.path.append("../")
-
-from . import graph
-from .chem_vertex import chem_vertex
-from . import periodic_table as PT
-from .common import is_uniquely_sorted
-from .oasa_exceptions import oasa_invalid_atom_symbol
-
-import copy
 import itertools
-from warnings import warn
+
+from oasa import periodic_table as PT
+from oasa.chem_vertex import chem_vertex
+from oasa.common import is_uniquely_sorted
+from oasa.oasa_exceptions import oasa_invalid_atom_symbol
+from oasa.oasa_exceptions import oasa_invalid_value
 
 
 class atom(chem_vertex):
@@ -183,7 +157,7 @@ class atom(chem_vertex):
     def _set_isotope(self, isotope):
         if isotope != None and type(isotope) != int:
             # isotope must be a number or None
-            raise oasa_exceptions.oasa_invalid_value("isotope", isotope)
+            raise oasa_invalid_value("isotope", isotope)
         self._isotope = isotope
 
     def _get_isotope(self):
@@ -247,7 +221,7 @@ class atom(chem_vertex):
     def raise_valency_to_senseful_value(self):
         """set atoms valency to the lowest possible, so that free_valency
         if non-negative (when possible) or highest possible,
-        does not lower valency when set to higher then necessary value"""
+        does not lower valency when set to higher than necessary value"""
         while self.free_valency < 0:
             if not self.raise_valency():
                 return
@@ -292,7 +266,7 @@ class atom(chem_vertex):
                     -3:-1
                 ] == [None, None]:
                     return False
-            cips.sort(cip_sorting_function)
+            cips.sort(key=cip_sorting_function)
         return True
 
     def get_neighbors_CIP_sorted(self):
@@ -361,11 +335,16 @@ class atom(chem_vertex):
             yield None
 
 
-def cip_sorting_function(a, b):
-    return -cmp(a[0], b[0])
+def cmp(a, b):
+    """Try to replace py2 missing function"""
+    return bool(a > b) - bool(a < b)
+
+
+def cip_sorting_function(a):
+    return a[0]
 
 
 ##################################################
 # TODO
 
-# chirality for those possesing a free electron pair
+# chirality for those possessing a free electron pair

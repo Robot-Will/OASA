@@ -1,36 +1,14 @@
-# --------------------------------------------------------------------------
-#     This file is part of OASA - a free chemical python library
-#     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version.
-
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
-#     Complete text of GNU GPL can be found in the file gpl.txt in the
-#     main directory of the program
-
-# --------------------------------------------------------------------------
-
-
-from __future__ import absolute_import
-from __future__ import print_function
-from . import graph
-from .atom import atom
-from .query_atom import query_atom
-from .bond import bond
 import copy
-from . import common
-import operator
-from . import misc
-from . import periodic_table as PT
 import math
-from . import transform3d
+
+from oasa import common
+from oasa import graph
+from oasa import misc
+from oasa import periodic_table as PT
+from oasa import transform3d
+from oasa.atom import atom
+from oasa.bond import bond
+from oasa.query_atom import query_atom
 
 
 class molecule(graph.graph):
@@ -40,6 +18,11 @@ class molecule(graph.graph):
         self.atoms = self.vertices
         self.bonds = self.edges
         self.stereochemistry = []
+
+    def __eq__(self, other):
+        if not isinstance(other, molecule):
+            return False
+        return other.get_structure_hash() == self.get_structure_hash()
 
     def __str__(self):
         return "molecule, %d atoms, %d bonds" % (len(self.vertices), len(self.edges))
@@ -906,10 +889,10 @@ class molecule(graph.graph):
         for v in vs:
             ret.append(str(v.properties_["distance_matrix"]))
         res = "*".join(ret)
-        import sha
+        from hashlib import sha1
 
-        ss = sha.new()
-        ss.update(res)
+        ss = sha1()
+        ss.update(res.encode("utf-8"))
         return ss.hexdigest()
 
     def create_CIP_digraph(self, center):

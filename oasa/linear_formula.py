@@ -1,33 +1,11 @@
-# --------------------------------------------------------------------------
-#     This file is part of OASA - a free chemical python library
-#     Copyright (C) 2003-2008 Beda Kosata <beda@zirael.org>
-
-#     This program is free software; you can redistribute it and/or modify
-#     it under the terms of the GNU General Public License as published by
-#     the Free Software Foundation; either version 2 of the License, or
-#     (at your option) any later version.
-
-#     This program is distributed in the hope that it will be useful,
-#     but WITHOUT ANY WARRANTY; without even the implied warranty of
-#     MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
-#     GNU General Public License for more details.
-
-#     Complete text of GNU GPL can be found in the file gpl.txt in the
-#     main directory of the program
-
-# --------------------------------------------------------------------------
-
-from __future__ import absolute_import
-from __future__ import print_function
-from .config import Config
-
 import re
-from .periodic_table import periodic_table
-from . import coords_generator
-from . import misc
-from .known_groups import name_to_smiles
-from . import smiles
-from .oasa_exceptions import oasa_invalid_atom_symbol
+
+from oasa import coords_generator
+from oasa import misc
+from oasa import smiles
+from oasa.config import Config
+from oasa.known_groups import name_to_smiles
+from oasa.oasa_exceptions import oasa_invalid_atom_symbol
 
 
 class linear_formula:
@@ -308,7 +286,7 @@ def reverse_formula(text):
 
 if __name__ == "__main__":
     form = "CH3(CH2)7"
-    # form = 'CH3((CH2)2)2O'
+    # form = 'CH3(CH2)2O(CH2)2CH3'
 
     a = linear_formula(form, start_valency=0, end_valency=1)
     if a.molecule:
